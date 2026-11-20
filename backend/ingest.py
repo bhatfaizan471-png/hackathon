@@ -144,4 +144,11 @@ async def ingest(
         }
         db.collection(f"tenants/{auth_tenant}/alerts").document(alert_id).set(alert_data)
 
+    # 7. AIOps Processing (anomaly detection, cooldown filtering, multi-signal correlation)
+    try:
+        from backend.aiops.processor import process_telemetry
+        process_telemetry(filtered_payload, db=db)
+    except Exception as e:
+        pass
+
     return {"status": "accepted", "payload_id": payload_id}

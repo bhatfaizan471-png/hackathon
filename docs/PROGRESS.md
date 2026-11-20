@@ -10,9 +10,42 @@
 | 3 | Collector — core agent | ✅ DONE | 9/9 pytest pass; redactor, buffer, simulator |
 | 4 | Backend — FastAPI ingest + Firestore rules | ✅ DONE | 7/7 pytest pass; auth, tenant isolation, watchdog, seed |
 | 5 | Dashboard — React / Vite scaffold | ✅ DONE | 5/5 Vitest pass; build clean; onSnapshot, egress proof |
-| 6 | AIOps — anomaly detection, correlation, recommendations | ⬜ TODO | |
+| 6 | AIOps — anomaly detection, correlation, recommendations | ✅ DONE | 4/4 pytest pass; EWMA Z-score, cooldown, incidents |
 | 7 | Integration & end-to-end demo path | ⬜ TODO | |
 | 8 | Polish, judging criteria, final commit | ⬜ TODO | |
+
+---
+
+## Stage 6 — Detail
+
+### Exit-gate checklist
+- [x] Injected sustained CPU spike to 95% creates an alert with explanation
+- [x] Brief normal CPU bump creates NO alert
+- [x] Repeated alerts inside the cooldown are suppressed
+- [x] CPU + latency + service alerts on one host within 2 minutes become exactly one incident
+- [x] Every incident shows signals, scores, rule, confidence, reasoning; wording says "probable cause"
+- [x] Every state transition is logged in UTC with a reason
+
+### Files created / changed
+| File | Action |
+|------|--------|
+| `backend/aiops/__init__.py` | Created |
+| `backend/aiops/anomaly_detector.py` | Created — EWMA + Z-score anomaly detector |
+| `backend/aiops/alert_manager.py` | Created — 120s cooldown suppression |
+| `backend/aiops/correlator.py` | Created — multi-signal 2-min clustering & probabilistic cause synthesis |
+| `backend/aiops/health_engine.py` | Created — 4-tier product health state evaluator & UTC history logger |
+| `backend/aiops/processor.py` | Created — telemetry ingest pipeline processor |
+| `backend/ingest.py` | Updated — connected AIOps processing on ingest |
+| `backend/tests/test_aiops.py` | Created — tests 1-6 |
+
+### Test output
+```
+backend/tests/test_aiops.py::test_1_and_2_sustained_spike_vs_brief_bump PASSED
+backend/tests/test_aiops.py::test_3_cooldown_suppression PASSED
+backend/tests/test_aiops.py::test_4_and_5_correlation_and_explainable_recommendation PASSED
+backend/tests/test_aiops.py::test_6_state_transition_logged_in_utc_with_reason PASSED
+4 passed in 0.04s
+```
 
 ---
 
