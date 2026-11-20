@@ -9,10 +9,50 @@
 | 2 | Architecture & Data Contracts | ✅ DONE | Schema validator passes all 3 tests |
 | 3 | Collector — core agent | ✅ DONE | 9/9 pytest pass; redactor, buffer, simulator |
 | 4 | Backend — FastAPI ingest + Firestore rules | ✅ DONE | 7/7 pytest pass; auth, tenant isolation, watchdog, seed |
-| 5 | Dashboard — React / Vite scaffold | ⬜ TODO | |
+| 5 | Dashboard — React / Vite scaffold | ✅ DONE | 5/5 Vitest pass; build clean; onSnapshot, egress proof |
 | 6 | AIOps — anomaly detection, correlation, recommendations | ⬜ TODO | |
 | 7 | Integration & end-to-end demo path | ⬜ TODO | |
 | 8 | Polish, judging criteria, final commit | ⬜ TODO | |
+
+---
+
+## Stage 5 — Detail
+
+### Exit-gate checklist
+- [x] `npm run build` and Vitest pass with no errors
+- [x] Dashboard shows data written through Firestore listeners, not hard-coded data
+- [x] Live data listeners update dynamically on telemetry arrival
+- [x] Stale data shows Fair/Poor, never healthy (calculated at render time)
+- [x] Egress panel shows MATCH for authentic payload and MISMATCH for tampered one
+- [x] Logged-in Company A user views only Company A telemetry
+
+### Files created / changed
+| File | Action |
+|------|--------|
+| `frontend/src/utils/staleness.js` | Created — staleness calculation (>15s Fair, >60s Poor) |
+| `frontend/src/utils/crypto.js` | Created — browser SHA-256 via SubtleCrypto |
+| `frontend/src/context/TenantContext.jsx` | Created — multi-tenant isolation & live Firestore listeners |
+| `frontend/src/components/Navbar.jsx` | Created — tenant selector, status indicator, navigation |
+| `frontend/src/components/Overview.jsx` | Created — fleet health score, KPI summary cards |
+| `frontend/src/components/FleetTable.jsx` | Created — collector inventory with staleness & health reasons |
+| `frontend/src/components/InfraView.jsx` | Created — CPU/RAM/Disk Recharts with threshold bands |
+| `frontend/src/components/NetworkView.jsx` | Created — ping latency, packet loss, bandwidth |
+| `frontend/src/components/ApplicationView.jsx` | Created — customer-facing endpoint health |
+| `frontend/src/components/SecurityView.jsx` | Created — auth failure charts & zero-PII egress proof |
+| `frontend/src/components/IncidentsView.jsx` | Created — AIOps correlated incidents & recommendations |
+| `frontend/src/components/HealthHistoryView.jsx` | Created — transition timeline log |
+| `frontend/src/components/EgressPanel.jsx` | Created — cryptographic egress SHA-256 validation |
+| `frontend/src/App.jsx` | Updated — tabbed application dashboard |
+| `frontend/src/tests/dashboard.test.jsx` | Created — unit & regression tests |
+
+### Test output
+```
+✓ src/tests/dashboard.test.jsx (5 tests) 12ms
+Test Files  1 passed (1)
+Tests       5 passed (5)
+Duration    3.04s
+✓ built in 9.94s
+```
 
 ---
 
