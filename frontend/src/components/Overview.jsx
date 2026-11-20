@@ -1,10 +1,12 @@
 import React from "react";
 import { useTenant } from "../context/TenantContext";
+import { useBackendHealth } from "../utils/backendHealth";
 import { calculateStaleness } from "../utils/staleness";
-import { Server, Activity, ShieldCheck, AlertTriangle, ArrowUpRight } from "lucide-react";
+import { Server, Activity, ShieldCheck, AlertTriangle, ArrowUpRight, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
 
 export default function Overview({ onNavigate }) {
   const { activeTenant, collectors, telemetry, alerts, incidents } = useTenant();
+  const { status: backendStatus, details: backendDetails, latencyMs, lastChecked, checkHealth } = useBackendHealth();
 
   const totalHosts = collectors.length;
   let onlineCount = 0;
@@ -53,6 +55,60 @@ export default function Overview({ onNavigate }) {
               <span>Verify Egress Proof</span>
               <ArrowUpRight className="h-3.5 w-3.5" />
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Backend & Connectivity Diagnostic Card */}
+      <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-3">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-stone-500">Tier 2 SaaS Backend Status:</span>
+            {backendStatus === "online" ? (
+              <span className="flex items-center space-x-1 text-xs font-bold text-[#0c4a3e] bg-[#e7f3ec] px-2.5 py-0.5 rounded-full border border-[#cbe6d5]">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>ONLINE & CONNECTED</span>
+              </span>
+            ) : backendStatus === "checking" ? (
+              <span className="text-xs font-bold text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-full">
+                Checking...
+              </span>
+            ) : (
+              <span className="flex items-center space-x-1 text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
+                <XCircle className="h-3.5 w-3.5" />
+                <span>OFFLINE / DISCONNECTED</span>
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <span className="text-xs text-stone-500 font-medium">
+              Latency: <strong className="text-stone-800">{latencyMs != null ? `${latencyMs}ms` : "—"}</strong>
+            </span>
+            <button
+              onClick={checkHealth}
+              className="flex items-center space-x-1 text-xs font-semibold text-[#0c4a3e] hover:bg-[#e7f3ec] px-2.5 py-1 rounded-lg border border-[#cbe6d5] transition"
+            >
+              <RefreshCw className="h-3 w-3" />
+              <span>Ping Backend</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 text-xs">
+          <div className="bg-[#f8faf8] p-3 rounded-xl border border-stone-200">
+            <span className="text-stone-500 font-medium">Ingest API Endpoint:</span>
+            <div className="font-mono text-stone-800 font-semibold mt-0.5">POST /v1/ingest</div>
+          </div>
+          <div className="bg-[#f8faf8] p-3 rounded-xl border border-stone-200">
+            <span className="text-stone-500 font-medium">Healthcheck Route:</span>
+            <div className="font-mono text-stone-800 font-semibold mt-0.5">GET /health (HTTP 200 OK)</div>
+          </div>
+          <div className="bg-[#f8faf8] p-3 rounded-xl border border-stone-200">
+            <span className="text-stone-500 font-medium">Service Version:</span>
+            <div className="font-mono text-[#0c4a3e] font-semibold mt-0.5">
+              {backendDetails?.version ? `nexus-observe-backend v${backendDetails.version}` : "FastAPI 0.115+"}
+            </div>
           </div>
         </div>
       </div>

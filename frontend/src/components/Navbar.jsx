@@ -1,9 +1,11 @@
 import React from "react";
 import { useTenant, TENANTS } from "../context/TenantContext";
-import { Activity, ShieldCheck, Server, AlertCircle, RefreshCw } from "lucide-react";
+import { useBackendHealth } from "../utils/backendHealth";
+import { Activity, ShieldCheck, Server, AlertCircle, RefreshCw, Radio } from "lucide-react";
 
 export default function Navbar({ activeTab, setActiveTab }) {
   const { activeTenant, setActiveTenant, listenerStatus, lastDataTimestamp } = useTenant();
+  const { status: backendStatus, details: backendDetails, latencyMs, checkHealth } = useBackendHealth();
 
   const tabs = [
     { id: "overview", label: "Overview", icon: Activity },
@@ -21,7 +23,7 @@ export default function Navbar({ activeTab, setActiveTab }) {
     <header className="border-b border-stone-200 bg-white/95 backdrop-blur sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo & Platform Info matching the green theme */}
+          {/* Logo & Platform Info */}
           <div className="flex items-center space-x-3">
             <div className="h-10 w-10 rounded-xl bg-[#0c4a3e] flex items-center justify-center shadow-md shadow-[#0c4a3e]/15">
               <Activity className="h-5 w-5 text-white" />
@@ -37,18 +39,46 @@ export default function Navbar({ activeTab, setActiveTab }) {
             </div>
           </div>
 
-          {/* Tenant Selector & Connection Status */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-xs">
-              <span className={`inline-block h-2.5 w-2.5 rounded-full ${listenerStatus === "live" ? "bg-emerald-600 animate-pulse" : "bg-amber-500"}`} />
-              <span className="text-stone-600 font-medium">
-                {listenerStatus === "live" ? "Live Stream" : "Connecting..."}
-                {lastDataTimestamp && ` (${lastDataTimestamp})`}
+          {/* Right Status Controls */}
+          <div className="flex items-center space-x-3">
+            {/* Backend Connectivity Status Pill */}
+            <div
+              onClick={checkHealth}
+              title={`FastAPI Server: ${backendStatus} • Click to recheck`}
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer transition shadow-sm ${
+                backendStatus === "online"
+                  ? "bg-[#e7f3ec] border-[#cbe6d5] text-[#0c4a3e] hover:bg-[#d8edd0]"
+                  : backendStatus === "checking"
+                  ? "bg-stone-100 border-stone-200 text-stone-600"
+                  : "bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100"
+              }`}
+            >
+              <span
+                className={`inline-block h-2 w-2 rounded-full ${
+                  backendStatus === "online"
+                    ? "bg-emerald-600 animate-pulse"
+                    : backendStatus === "checking"
+                    ? "bg-amber-400"
+                    : "bg-rose-500"
+                }`}
+              />
+              <span>
+                Backend: {backendStatus === "online" ? `Online (${latencyMs ?? 10}ms)` : backendStatus === "checking" ? "Checking..." : "Offline"}
+              </span>
+              <RefreshCw className="h-3 w-3 opacity-60 ml-0.5 hover:rotate-180 transition-transform duration-500" />
+            </div>
+
+            {/* Firestore Live Stream Pill */}
+            <div className="hidden sm:flex items-center space-x-1.5 text-xs px-2.5 py-1.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-600">
+              <span className={`inline-block h-2 w-2 rounded-full ${listenerStatus === "live" ? "bg-emerald-600 animate-pulse" : "bg-amber-400"}`} />
+              <span className="font-medium">
+                Firestore: {listenerStatus === "live" ? "Live Stream" : "Connecting"}
               </span>
             </div>
 
+            {/* Tenant Selector */}
             <div className="flex items-center space-x-2 bg-stone-50 p-1.5 rounded-xl border border-stone-200">
-              <span className="text-xs text-stone-500 font-medium pl-2">Tenant:</span>
+              <span className="text-xs text-stone-500 font-medium pl-2 hidden md:inline">Tenant:</span>
               <select
                 value={activeTenant.id}
                 onChange={(e) => {
