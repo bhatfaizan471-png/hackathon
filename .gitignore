@@ -12,3 +12,10 @@ collector/data/
 *.sqlite
 *.db
 .DS_Store
+
+# Python packaging & test artifacts
+*.egg-info/
+.pytest_cache/
+htmlcov/
+coverage.xml
+*.log
