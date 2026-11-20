@@ -1,5 +1,9 @@
 import os
 import pytest
+
+# Ensure all tests default to mock Firestore unless explicitly testing real Firestore
+os.environ["USE_MOCK_FIRESTORE"] = "true"
+
 from backend.firestore_client import MockFirestoreClient, set_db
 from backend.seed import seed_database
 

@@ -1,6 +1,7 @@
 from datetime import datetime, timezone, timedelta
 from backend.firestore_client import get_db
 from backend.watchdog import check_and_update_silent_collectors
+from backend.config import WATCHDOG_OFFLINE_SECONDS
 
 def test_7_watchdog_marks_silent_collector_poor_after_60s():
     db = get_db()
@@ -38,3 +39,54 @@ def test_7_watchdog_marks_silent_collector_poor_after_60s():
     hist = history_docs[0].to_dict()
     assert hist["to_state"] == "poor"
     assert hist["from_state"] == "excellent"
+
+
+def test_watchdog_marks_silent_collector_poor_after_45s():
+    """
+    TASK C test:
+    Demonstrates that a collector with no heartbeat for > 45s (e.g. 46s)
+    transitions to 'poor' and 'offline' using the 45s threshold.
+    """
+    db = get_db()
+
+    base_time = datetime(2026, 11, 20, 15, 0, 0, tzinfo=timezone.utc)
+
+    # 1. Collector seen 40s ago (within 45s threshold) -> should stay online
+    fresh_time = (base_time - timedelta(seconds=40)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    col_fresh = db.collection("tenants/tenant_acme_demo/collectors").document("col_fresh_01")
+    col_fresh.set({
+        "status": "online",
+        "health_state": "good",
+        "last_seen_utc": fresh_time,
+        "source_id": "src_fresh",
+    })
+
+    # 2. Collector seen 46s ago (> 45s threshold) -> should transition to poor
+    stale_time = (base_time - timedelta(seconds=46)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    col_stale = db.collection("tenants/tenant_acme_demo/collectors").document("col_stale_45s")
+    col_stale.set({
+        "status": "online",
+        "health_state": "good",
+        "last_seen_utc": stale_time,
+        "source_id": "src_stale",
+    })
+
+    # Run watchdog using default threshold (or explicit 45s) and now_override
+    updated = check_and_update_silent_collectors(
+        db=db,
+        now_override=base_time,
+        offline_threshold_seconds=45,
+    )
+
+    assert updated >= 1
+
+    # col_fresh should remain online
+    fresh_doc = col_fresh.get().to_dict()
+    assert fresh_doc["status"] == "online"
+    assert fresh_doc["health_state"] == "good"
+
+    # col_stale should be offline and poor
+    stale_doc = col_stale.get().to_dict()
+    assert stale_doc["status"] == "offline"
+    assert stale_doc["health_state"] == "poor"
+    assert "45s limit" in stale_doc["health_reasons"][0]

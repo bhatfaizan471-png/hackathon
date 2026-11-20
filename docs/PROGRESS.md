@@ -1,6 +1,6 @@
 # NEXUS OBSERVE — Build Progress
 
-> Last updated: 2026-11-20
+> Last updated: 2026-11-21
 
 ## Stage Status
 
@@ -13,6 +13,25 @@
 | 6 | AIOps — anomaly detection, correlation, recommendations | ✅ DONE | 4/4 pytest pass; EWMA Z-score, cooldown, incidents |
 | 7 | Integration & end-to-end demo path | ✅ DONE | 12/12 demo tests pass; Section 13 metrics measured |
 | 8 | Polish, judging criteria, final commit | ✅ DONE | Remediation audit, runbook, limitations, all green |
+| + | Optimization & Tenant Claims | ✅ DONE | 30/30 pytest pass, Auth claims, 5-min buffer measurement (avg 0.0) |
+
+---
+
+## Post-Stage 8 Optimizations & Verification (2026-11-21)
+
+### Exit-gate checklist
+- [x] Part A: Removed `getAnalytics` and unused analytics dependencies from `frontend/src/firebase.js`; all config strictly sourced from `import.meta.env.VITE_*`.
+- [x] Part B: Fixed collector bottleneck by replacing sequential sends with concurrent per-collector worker queues and HTTP keep-alive connection pooling.
+- [x] Part B: 5-minute continuous run (60 ticks, 180 payloads) completed: steady-state `buffer_depth` stays strictly at **0** (never exceeds 1).
+
+### 5-Minute Buffer Depth Measurement Results
+- **Duration**: 300 seconds (5 minutes)
+- **Interval**: 5 seconds (60 ticks)
+- **Total Payloads Sent**: 180 (3 concurrent collectors per tick)
+- **Min Steady-State Depth**: 0
+- **Max Steady-State Depth**: 0
+- **Average Steady-State Depth**: 0.00
+- **Result**: PASS (steady-state depth <= 1)
 
 ---
 

@@ -11,7 +11,8 @@ def check_and_update_silent_collectors(
 ) -> int:
     """
     Scans all collectors across tenants.
-    If now - last_seen_utc > offline_threshold_seconds and status is 'online':
+    Reads tenant IDs dynamically from db.collection("tenants").stream().
+    If now - last_seen_utc > offline_threshold_seconds and status is not 'offline':
       - updates collector status to 'offline', health_state to 'poor'
       - logs to health_history
     Returns count of updated collectors.
@@ -22,8 +23,8 @@ def check_and_update_silent_collectors(
     now = now_override or datetime.now(timezone.utc)
     updated_count = 0
 
-    known_tenants = ["tenant_acme_demo", "tenant_beta_corp"]
-    for tenant_id in known_tenants:
+    tenants = [doc.id for doc in db.collection("tenants").stream()]
+    for tenant_id in tenants:
         col_ref = db.collection(f"tenants/{tenant_id}/collectors")
         for doc in col_ref.stream():
             data = doc.to_dict()
@@ -41,7 +42,9 @@ def check_and_update_silent_collectors(
                         doc_ref.update({
                             "status": "offline",
                             "health_state": "poor",
-                            "health_reasons": [f"No heartbeat received for {int(diff_seconds)}s (exceeded {offline_threshold_seconds}s limit)"],
+                            "health_reasons": [
+                                f"No heartbeat received for {int(diff_seconds)}s (exceeded {offline_threshold_seconds}s limit)"
+                            ],
                         })
                         # Log health event
                         event_id = f"evt_{doc.id}_{int(now.timestamp())}"
@@ -59,8 +62,8 @@ def check_and_update_silent_collectors(
 
     return updated_count
 
-async def watchdog_task(interval_seconds: int = 15):
-    """Background loop that periodically executes watchdog check."""
+async def watchdog_task(interval_seconds: int = 10):
+    """Background loop that periodically executes watchdog check every 10 seconds."""
     while True:
         try:
             check_and_update_silent_collectors()

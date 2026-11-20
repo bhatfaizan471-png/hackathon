@@ -56,10 +56,11 @@ class FakeCollector:
         self._mem = _DriftValue(50, 10, 95, step=1)
         self._disk = _DriftValue(60, 10, 99, step=0.2)
         self._latency = _DriftValue(20, 1, 300, step=5)
-        self._loss = _DriftValue(0.5, 0, 10, step=0.3)
+        self._loss = _DriftValue(0.25, 0.1, 0.4, step=0.05)
         self._bw_in = _DriftValue(500, 50, 5000, step=50)
         self._bw_out = _DriftValue(200, 10, 3000, step=30)
         self._auth_failures = _DriftValue(1, 0, 15, step=0.5)
+        self.scenario: str | None = None
 
     def _risk_level(self, failures: int) -> str:
         if failures == 0:
@@ -72,7 +73,7 @@ class FakeCollector:
             return "high"
         return "critical"
 
-    def build_raw(self) -> dict[str, Any]:
+    def build_raw(self, buffer_depth: int = 0, scenario: str | None = None) -> dict[str, Any]:
         """Return raw (unfiltered) data for this tick."""
         self._seq += 1
         now_utc = datetime.now(timezone.utc).isoformat()
@@ -101,7 +102,7 @@ class FakeCollector:
             "config_version": "1.0",
             "heartbeat": {
                 "uptime_s": uptime,
-                "buffer_depth": random.randint(0, 5),
+                "buffer_depth": buffer_depth,
                 "simulated": True,
             },
             "metrics": {
@@ -128,6 +129,11 @@ class FakeCollector:
 
         if self.customer_facing is not None:
             raw["customer_facing"] = self.customer_facing
+
+        active_scenario = scenario or self.scenario
+        if active_scenario:
+            from scripts.scenario_injector import inject_scenario
+            raw = inject_scenario(raw, active_scenario)
 
         return raw
 
@@ -157,6 +163,6 @@ SIMULATORS: list[FakeCollector] = [
 ]
 
 
-def collect_all_raw() -> list[dict[str, Any]]:
+def collect_all_raw(buffer_depth: int = 0, scenario: str | None = None) -> list[dict[str, Any]]:
     """Return one raw payload dict per simulator."""
-    return [sim.build_raw() for sim in SIMULATORS]
+    return [sim.build_raw(buffer_depth=buffer_depth, scenario=scenario) for sim in SIMULATORS]

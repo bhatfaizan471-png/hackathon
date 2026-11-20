@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 from datetime import datetime, timezone
 from fastapi import APIRouter, Request, Depends, HTTPException, status
 from backend.auth import verify_collector
@@ -148,7 +149,7 @@ async def ingest(
     try:
         from backend.aiops.processor import process_telemetry
         process_telemetry(filtered_payload, db=db)
-    except Exception as e:
-        pass
+    except Exception:
+        logging.exception("AIOps processing failed for payload %s", payload_id)
 
     return {"status": "accepted", "payload_id": payload_id}

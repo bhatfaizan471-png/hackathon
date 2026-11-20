@@ -1,10 +1,19 @@
 import React from "react";
-import { useTenant, TENANTS } from "../context/TenantContext";
+import { useTenant } from "../context/TenantContext";
 import { useBackendHealth } from "../utils/backendHealth";
-import { Activity, ShieldCheck, Server, AlertCircle, RefreshCw, Radio } from "lucide-react";
+import {
+  Activity,
+  ShieldCheck,
+  Server,
+  AlertCircle,
+  RefreshCw,
+  LogOut,
+  Building,
+  User,
+} from "lucide-react";
 
 export default function Navbar({ activeTab, setActiveTab }) {
-  const { activeTenant, setActiveTenant, listenerStatus, lastDataTimestamp } = useTenant();
+  const { user, activeTenant, logout, listenerStatus, lastDataTimestamp } = useTenant();
   const { status: backendStatus, details: backendDetails, latencyMs, checkHealth } = useBackendHealth();
 
   const tabs = [
@@ -76,24 +85,38 @@ export default function Navbar({ activeTab, setActiveTab }) {
               </span>
             </div>
 
-            {/* Tenant Selector */}
-            <div className="flex items-center space-x-2 bg-stone-50 p-1.5 rounded-xl border border-stone-200">
-              <span className="text-xs text-stone-500 font-medium pl-2 hidden md:inline">Tenant:</span>
-              <select
-                value={activeTenant.id}
-                onChange={(e) => {
-                  const t = TENANTS.find((x) => x.id === e.target.value);
-                  if (t) setActiveTenant(t);
-                }}
-                className="bg-white text-xs text-stone-800 border border-stone-300 rounded-lg px-2.5 py-1 focus:outline-none focus:ring-1 focus:ring-[#0c4a3e] font-semibold cursor-pointer shadow-sm"
-              >
-                {TENANTS.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Tenant Claim Badge (No manual switch) */}
+            {activeTenant && (
+              <div className="flex items-center space-x-2 bg-[#f8faf8] px-3 py-1.5 rounded-xl border border-stone-200 shadow-sm">
+                <Building className="h-3.5 w-3.5 text-[#0c4a3e]" />
+                <div className="flex flex-col text-left">
+                  <span className="text-xs font-bold text-[#0c4a3e] leading-tight">
+                    {activeTenant.name}
+                  </span>
+                  <span className="text-[10px] text-stone-400 font-mono leading-none">
+                    {activeTenant.id}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* User & Logout Button */}
+            {user && (
+              <div className="flex items-center space-x-2 pl-1">
+                <div className="hidden lg:flex items-center space-x-1 text-xs text-stone-600 bg-stone-50 px-2.5 py-1.5 rounded-xl border border-stone-200">
+                  <User className="h-3.5 w-3.5 text-stone-400" />
+                  <span className="font-medium">{user.email}</span>
+                </div>
+                <button
+                  onClick={logout}
+                  title="Sign out of Nexus Observe"
+                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-rose-50 hover:border-rose-200 hover:text-rose-700 text-stone-700 text-xs font-semibold transition shadow-sm"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
