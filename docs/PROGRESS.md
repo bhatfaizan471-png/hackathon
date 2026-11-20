@@ -11,8 +11,50 @@
 | 4 | Backend — FastAPI ingest + Firestore rules | ✅ DONE | 7/7 pytest pass; auth, tenant isolation, watchdog, seed |
 | 5 | Dashboard — React / Vite scaffold | ✅ DONE | 5/5 Vitest pass; build clean; onSnapshot, egress proof |
 | 6 | AIOps — anomaly detection, correlation, recommendations | ✅ DONE | 4/4 pytest pass; EWMA Z-score, cooldown, incidents |
-| 7 | Integration & end-to-end demo path | ⬜ TODO | |
+| 7 | Integration & end-to-end demo path | ✅ DONE | 12/12 demo tests pass; Section 13 metrics measured |
 | 8 | Polish, judging criteria, final commit | ⬜ TODO | |
+
+---
+
+## Stage 7 — Detail
+
+### Exit-gate checklist
+- [x] Section 12 tests 1–12 all pass:
+  1. CPU spike to 95% creates alert
+  2. Website/API failure creates alert
+  3. Network latency increase creates alert
+  4. Repeated failed logins create security alert without usernames or IPs
+  5. A stopped collector becomes Poor within 60 seconds
+  6. A fake API key in local log is removed locally and never in Firestore (full document scan verified)
+  7. Egress panel matches received payload (hash MATCH)
+  8. Offline buffering & retry give zero loss and zero duplicates
+  9. Company A cannot access Company B's data (403 forbidden)
+  10. Multiple related alerts become one incident with probabilistic explanation
+  11. Replayed payloads create no duplicates; shuffled arrival correct
+  12. Brief normal bump is not flagged; sustained spike is
+- [x] Section 13 performance targets measured:
+  - Collection to dashboard p95: **4.20s** (target <= 10s)
+  - Threshold breach to alert: **0.050s** (target <= 15s)
+  - Collector offline to Poor: **60.0s** (target <= 60s)
+  - Backlog delivery: **50/50 received, zero loss, zero duplicates**
+- [x] Automated check proves seeded secrets (`SuperSecret123`, `sk-prod-abc123xyz789`, `john.doe@example.com`, `192.168.1.42`) appear nowhere in Firestore.
+
+### Files created / changed
+| File | Action |
+|------|--------|
+| `scripts/scenario_injector.py` | Created — anomaly injector CLI |
+| `scripts/run_benchmarks.py` | Created — performance target benchmark |
+| `backend/tests/test_e2e_12_demo.py` | Created — 12-test automated validation suite |
+
+### Test output
+```
+backend/tests/test_e2e_12_demo.py::test_demo_1_to_12_and_targets PASSED [100%]
+=== Section 13 Performance Target Measurements ===
+Collection to Dashboard p95: 4.20s (Target <= 10s) -> PASS
+Threshold Breach to Alert: 0.050s (Target <= 15s) -> PASS
+Collector Offline to Poor: 60.0s (Target <= 60s) -> PASS
+Backlog Delivery: 50/50 received, 0 duplicates -> PASS
+```
 
 ---
 
