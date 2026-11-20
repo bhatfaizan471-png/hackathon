@@ -18,44 +18,44 @@ export default function Navbar({ activeTab, setActiveTab }) {
   ];
 
   return (
-    <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <header className="border-b border-stone-200 bg-white/95 backdrop-blur sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo & Platform Info */}
+          {/* Logo & Platform Info matching the green theme */}
           <div className="flex items-center space-x-3">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+            <div className="h-10 w-10 rounded-xl bg-[#0c4a3e] flex items-center justify-center shadow-md shadow-[#0c4a3e]/15">
               <Activity className="h-5 w-5 text-white" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-white text-lg tracking-tight">NEXUS OBSERVE</span>
-                <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/50">
+                <span className="font-bold text-[#0c4a3e] text-lg tracking-tight">Nexus Observe</span>
+                <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-[#e7f3ec] text-[#0c4a3e] border border-[#cbe6d5]">
                   AIOps Tier 2
                 </span>
               </div>
-              <p className="text-xs text-slate-400">Privacy-First Two-Tier Observability</p>
+              <p className="text-xs text-stone-500 font-medium">Privacy-First Two-Tier Observability</p>
             </div>
           </div>
 
           {/* Tenant Selector & Connection Status */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 text-xs">
-              <span className={`inline-block h-2 w-2 rounded-full ${listenerStatus === "live" ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
-              <span className="text-slate-400">
-                {listenerStatus === "live" ? "Live Listener" : "Connecting..."}
+              <span className={`inline-block h-2.5 w-2.5 rounded-full ${listenerStatus === "live" ? "bg-emerald-600 animate-pulse" : "bg-amber-500"}`} />
+              <span className="text-stone-600 font-medium">
+                {listenerStatus === "live" ? "Live Stream" : "Connecting..."}
                 {lastDataTimestamp && ` (${lastDataTimestamp})`}
               </span>
             </div>
 
-            <div className="flex items-center space-x-2 bg-slate-800/80 p-1.5 rounded-lg border border-slate-700">
-              <span className="text-xs text-slate-400 pl-2">Tenant:</span>
+            <div className="flex items-center space-x-2 bg-stone-50 p-1.5 rounded-xl border border-stone-200">
+              <span className="text-xs text-stone-500 font-medium pl-2">Tenant:</span>
               <select
                 value={activeTenant.id}
                 onChange={(e) => {
                   const t = TENANTS.find((x) => x.id === e.target.value);
                   if (t) setActiveTenant(t);
                 }}
-                className="bg-slate-900 text-xs text-slate-200 border border-slate-700 rounded px-2.5 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-500 font-medium cursor-pointer"
+                className="bg-white text-xs text-stone-800 border border-stone-300 rounded-lg px-2.5 py-1 focus:outline-none focus:ring-1 focus:ring-[#0c4a3e] font-semibold cursor-pointer shadow-sm"
               >
                 {TENANTS.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -68,7 +68,7 @@ export default function Navbar({ activeTab, setActiveTab }) {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex space-x-1 overflow-x-auto py-2 scrollbar-none border-t border-slate-800/50">
+        <div className="flex space-x-1.5 overflow-x-auto py-2.5 scrollbar-none border-t border-stone-100">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -76,10 +76,10 @@ export default function Navbar({ activeTab, setActiveTab }) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+                className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
                   isActive
-                    ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                    ? "bg-[#0c4a3e] text-white shadow-sm shadow-[#0c4a3e]/20"
+                    : "text-stone-600 hover:text-[#0c4a3e] hover:bg-[#e7f3ec]/60"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />

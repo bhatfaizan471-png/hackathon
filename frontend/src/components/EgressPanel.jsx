@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTenant } from "../context/TenantContext";
 import { computeSha256 } from "../utils/crypto";
-import { ShieldCheck, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 export default function EgressPanel() {
   const { telemetry, activeTenant } = useTenant();
@@ -66,27 +66,27 @@ export default function EgressPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-white tracking-tight">Cryptographic Egress Proof Panel</h2>
-        <p className="text-xs text-slate-400">
+        <h2 className="text-xl font-bold text-[#0c4a3e] tracking-tight">Cryptographic Egress Proof Panel</h2>
+        <p className="text-xs text-stone-500">
           Proves that SaaS received exactly what the local collector sent, with zero modification or sensitive data leak.
         </p>
       </div>
 
       {/* Proof Card */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6 space-y-6 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 space-y-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-4">
           <div>
-            <div className="text-xs text-slate-400">Payload ID:</div>
-            <div className="text-sm font-mono text-cyan-400 font-bold">{selectedPayload?.id || "None selected"}</div>
+            <div className="text-xs text-stone-500 font-medium">Payload Document ID:</div>
+            <div className="text-sm font-mono text-[#0c4a3e] font-bold">{selectedPayload?.id || "None selected"}</div>
           </div>
           <div className="flex items-center space-x-3">
             {isMatch ? (
-              <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-950 border border-emerald-800/60 text-emerald-400 text-xs font-bold">
+              <div className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-[#e7f3ec] border border-[#cbe6d5] text-[#0c4a3e] text-xs font-bold">
                 <CheckCircle2 className="h-4 w-4" />
                 <span>HASH MATCH (AUTHENTIC)</span>
               </div>
             ) : (
-              <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-rose-950 border border-rose-800/60 text-rose-400 text-xs font-bold">
+              <div className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">
                 <XCircle className="h-4 w-4" />
                 <span>HASH MISMATCH (TAMPERED / CORRUPTED)</span>
               </div>
@@ -96,16 +96,16 @@ export default function EgressPanel() {
 
         {/* SHA-256 Hashes Comparison */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="rounded-lg bg-slate-950 p-4 border border-slate-800">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tier 1 Sent SHA-256 (Egress Log)</span>
-            <div className="font-mono text-xs text-emerald-400 break-all mt-2">
+          <div className="rounded-xl bg-[#f8faf8] p-4 border border-stone-200">
+            <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Tier 1 Sent SHA-256 (Egress Log)</span>
+            <div className="font-mono text-xs text-[#0c4a3e] font-bold break-all mt-2">
               {originalHash || "Awaiting payload..."}
             </div>
           </div>
 
-          <div className="rounded-lg bg-slate-950 p-4 border border-slate-800">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Computed Received SHA-256</span>
-            <div className={`font-mono text-xs break-all mt-2 ${isMatch ? "text-emerald-400" : "text-rose-400"}`}>
+          <div className="rounded-xl bg-[#f8faf8] p-4 border border-stone-200">
+            <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Computed Received SHA-256</span>
+            <div className={`font-mono text-xs font-bold break-all mt-2 ${isMatch ? "text-[#0c4a3e]" : "text-rose-600"}`}>
               {computedHash || "Computing..."}
             </div>
           </div>
@@ -114,17 +114,17 @@ export default function EgressPanel() {
         {/* JSON Inspector & Interactive Tamper Test */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-300">Exact Egress Payload Body</span>
+            <span className="text-xs font-bold text-stone-700">Exact Egress Payload Body</span>
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleSimulateTamper}
-                className="px-2.5 py-1 text-xs rounded bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900 transition"
+                className="px-3 py-1.5 text-xs rounded-xl bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 font-semibold transition"
               >
                 Inject Fake Secret (Tamper Demo)
               </button>
               <button
                 onClick={handleReset}
-                className="px-2.5 py-1 text-xs rounded bg-slate-800 text-slate-300 hover:bg-slate-700 transition"
+                className="px-3 py-1.5 text-xs rounded-xl bg-stone-100 text-stone-700 hover:bg-stone-200 font-semibold transition"
               >
                 Reset
               </button>
@@ -135,7 +135,7 @@ export default function EgressPanel() {
             value={tamperedPayloadJson}
             onChange={(e) => setTamperedPayloadJson(e.target.value)}
             rows={12}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+            className="w-full bg-[#f8faf8] border border-stone-200 rounded-xl p-3.5 font-mono text-xs text-stone-800 focus:outline-none focus:ring-1 focus:ring-[#0c4a3e]"
           />
         </div>
       </div>

@@ -16,7 +16,7 @@ export default function App() {
 
   return (
     <TenantProvider>
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+      <div className="min-h-screen bg-[#f8faf8] text-stone-800 flex flex-col font-sans">
         <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {activeTab === "overview" && <Overview onNavigate={setActiveTab} />}
@@ -29,7 +29,7 @@ export default function App() {
           {activeTab === "history" && <HealthHistoryView />}
           {activeTab === "egress" && <EgressPanel />}
         </main>
-        <footer className="border-t border-slate-900 bg-slate-950/80 py-4 text-center text-xs text-slate-600">
+        <footer className="border-t border-stone-200 bg-white/90 py-5 text-center text-xs text-stone-500">
           Nexus Observe &copy; 2026 &bull; Privacy-Preserving AIOps Infrastructure Observability
         </footer>
       </div>

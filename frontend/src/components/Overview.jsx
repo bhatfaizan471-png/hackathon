@@ -24,31 +24,31 @@ export default function Overview({ onNavigate }) {
   const overallState = poorCount > 0 ? "Poor" : fairCount > 0 ? "Fair" : "Good";
 
   const stateColors = {
-    Good: "text-emerald-400 border-emerald-500/30 bg-emerald-950/30",
-    Fair: "text-amber-400 border-amber-500/30 bg-amber-950/30",
-    Poor: "text-rose-400 border-rose-500/30 bg-rose-950/30",
+    Good: "text-[#0c4a3e] border-[#cbe6d5] bg-[#e7f3ec]",
+    Fair: "text-amber-800 border-amber-200 bg-amber-50",
+    Poor: "text-rose-800 border-rose-200 bg-rose-50",
   };
 
   return (
     <div className="space-y-6">
       {/* Platform Banner */}
-      <div className="rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900 to-cyan-950/40 p-6 shadow-xl">
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-white tracking-tight">
+            <h2 className="text-2xl font-bold text-[#0c4a3e] tracking-tight">
               {activeTenant.name} Telemetry Hub
             </h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-stone-600 mt-1">
               Zero-Trust Metadata Egress: raw log lines, user credentials, and customer data never leave customer boundaries.
             </p>
           </div>
           <div className="flex items-center space-x-3">
-            <div className={`px-3 py-1.5 rounded-xl border text-xs font-semibold uppercase tracking-wider ${stateColors[overallState]}`}>
+            <div className={`px-3.5 py-1.5 rounded-xl border text-xs font-bold uppercase tracking-wider ${stateColors[overallState]}`}>
               Fleet Health: {overallState}
             </div>
             <button
               onClick={() => onNavigate("egress")}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium shadow-lg shadow-cyan-600/20 transition"
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#0c4a3e] hover:bg-[#093a30] text-white text-xs font-semibold shadow-sm transition"
             >
               <span>Verify Egress Proof</span>
               <ArrowUpRight className="h-3.5 w-3.5" />
@@ -59,103 +59,111 @@ export default function Overview({ onNavigate }) {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Hosts</span>
-            <Server className="h-4 w-4 text-cyan-400" />
+            <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Total Hosts</span>
+            <div className="p-2 rounded-lg bg-[#e7f3ec]">
+              <Server className="h-4 w-4 text-[#0c4a3e]" />
+            </div>
           </div>
           <div className="mt-3 flex items-baseline space-x-2">
-            <span className="text-2xl font-bold text-white">{totalHosts}</span>
-            <span className="text-xs text-emerald-400">({onlineCount} online)</span>
+            <span className="text-3xl font-extrabold text-[#0c4a3e]">{totalHosts}</span>
+            <span className="text-xs font-semibold text-emerald-700">({onlineCount} online)</span>
           </div>
-          <div className="mt-2 text-xs text-slate-500">Autonomous metadata collectors</div>
+          <div className="mt-2 text-xs text-stone-500">Autonomous metadata collectors</div>
         </div>
 
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Active Alerts</span>
-            <AlertTriangle className="h-4 w-4 text-amber-400" />
+            <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Active Alerts</span>
+            <div className="p-2 rounded-lg bg-amber-50">
+              <AlertTriangle className="h-4 w-4 text-amber-700" />
+            </div>
           </div>
           <div className="mt-3 flex items-baseline space-x-2">
-            <span className="text-2xl font-bold text-white">{alerts.length}</span>
-            <span className="text-xs text-slate-400">in cooldown window</span>
+            <span className="text-3xl font-extrabold text-stone-800">{alerts.length}</span>
+            <span className="text-xs font-medium text-stone-500">in cooldown</span>
           </div>
-          <div className="mt-2 text-xs text-slate-500">Threshold & EWMA anomaly triggers</div>
+          <div className="mt-2 text-xs text-stone-500">Threshold & EWMA anomaly triggers</div>
         </div>
 
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">AIOps Incidents</span>
-            <Activity className="h-4 w-4 text-rose-400" />
+            <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">AIOps Incidents</span>
+            <div className="p-2 rounded-lg bg-rose-50">
+              <Activity className="h-4 w-4 text-rose-700" />
+            </div>
           </div>
           <div className="mt-3 flex items-baseline space-x-2">
-            <span className="text-2xl font-bold text-white">{incidents.length}</span>
-            <span className="text-xs text-rose-400">correlated</span>
+            <span className="text-3xl font-extrabold text-stone-800">{incidents.length}</span>
+            <span className="text-xs font-semibold text-rose-600">correlated</span>
           </div>
-          <div className="mt-2 text-xs text-slate-500">Multi-signal 2-minute clustering</div>
+          <div className="mt-2 text-xs text-stone-500">Multi-signal 2-minute clustering</div>
         </div>
 
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Privacy Engine</span>
-            <ShieldCheck className="h-4 w-4 text-emerald-400" />
+            <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Privacy Engine</span>
+            <div className="p-2 rounded-lg bg-[#e7f3ec]">
+              <ShieldCheck className="h-4 w-4 text-[#0c4a3e]" />
+            </div>
           </div>
           <div className="mt-3 flex items-baseline space-x-2">
-            <span className="text-2xl font-bold text-emerald-400">100%</span>
-            <span className="text-xs text-slate-400">Allow-list compliance</span>
+            <span className="text-3xl font-extrabold text-[#0c4a3e]">100%</span>
+            <span className="text-xs font-medium text-stone-500">Allow-list</span>
           </div>
-          <div className="mt-2 text-xs text-slate-500">0 secrets leaked outside boundary</div>
+          <div className="mt-2 text-xs text-stone-500">0 secrets leaked outside boundary</div>
         </div>
       </div>
 
-      {/* Quick Summary of Recent Activity */}
+      {/* Snapshot Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-          <h3 className="text-sm font-semibold text-white mb-3">Live Telemetry Snapshot</h3>
+        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <h3 className="text-base font-bold text-[#0c4a3e] mb-4">Live Telemetry Snapshot</h3>
           {latestPoint ? (
             <div className="space-y-3">
-              <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-800">
-                <span className="text-slate-400">Last Received</span>
-                <span className="text-slate-200 font-mono">{latestPoint.event_time_utc}</span>
+              <div className="flex justify-between items-center text-xs py-2 border-b border-stone-100">
+                <span className="text-stone-500 font-medium">Last Received</span>
+                <span className="text-stone-800 font-mono font-semibold">{latestPoint.event_time_utc}</span>
               </div>
-              <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-800">
-                <span className="text-slate-400">Active Source</span>
-                <span className="text-slate-200 font-mono">{latestPoint.source_id} ({latestPoint.source_role})</span>
+              <div className="flex justify-between items-center text-xs py-2 border-b border-stone-100">
+                <span className="text-stone-500 font-medium">Active Source</span>
+                <span className="text-[#0c4a3e] font-mono font-semibold">{latestPoint.source_id} ({latestPoint.source_role})</span>
               </div>
-              <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-800">
-                <span className="text-slate-400">CPU / RAM / Disk</span>
-                <span className="text-slate-200 font-mono">
+              <div className="flex justify-between items-center text-xs py-2 border-b border-stone-100">
+                <span className="text-stone-500 font-medium">CPU / RAM / Disk</span>
+                <span className="text-stone-800 font-mono font-semibold">
                   {latestPoint.metrics?.cpu_percent}% / {latestPoint.metrics?.memory_percent}% / {latestPoint.metrics?.disk_percent}%
                 </span>
               </div>
-              <div className="flex justify-between items-center text-xs py-1.5 border-b border-slate-800">
-                <span className="text-slate-400">Latency / Packet Loss</span>
-                <span className="text-slate-200 font-mono">
+              <div className="flex justify-between items-center text-xs py-2 border-b border-stone-100">
+                <span className="text-stone-500 font-medium">Latency / Packet Loss</span>
+                <span className="text-stone-800 font-mono font-semibold">
                   {latestPoint.metrics?.net_latency_ms} ms / {latestPoint.metrics?.packet_loss_percent}%
                 </span>
               </div>
             </div>
           ) : (
-            <div className="text-xs text-slate-500 italic py-6 text-center">
+            <div className="text-xs text-stone-500 italic py-8 text-center bg-stone-50 rounded-xl">
               Awaiting telemetry from active collectors... Run collector with <code>python -m collector.collector --simulate</code>
             </div>
           )}
         </div>
 
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-          <h3 className="text-sm font-semibold text-white mb-3">Security & Compliance Guard</h3>
-          <div className="space-y-3 text-xs">
-            <div className="flex items-center space-x-2 text-emerald-400 bg-emerald-950/20 border border-emerald-900/40 p-2.5 rounded-lg">
-              <ShieldCheck className="h-4 w-4 shrink-0" />
-              <span>Allow-list strictly enforces zero sensitive data egress.</span>
+        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <h3 className="text-base font-bold text-[#0c4a3e] mb-4">Security & Compliance Guard</h3>
+          <div className="space-y-4 text-xs">
+            <div className="flex items-center space-x-2.5 text-[#0c4a3e] bg-[#e7f3ec] border border-[#cbe6d5] p-3.5 rounded-xl font-medium">
+              <ShieldCheck className="h-5 w-5 shrink-0" />
+              <span>Allow-list strictly enforces zero sensitive data egress across all hosts.</span>
             </div>
-            <div className="flex justify-between items-center py-1.5 border-b border-slate-800 text-slate-300">
-              <span className="text-slate-400">Redacted Secrets Count</span>
-              <span className="font-mono">{latestPoint?.security?.secrets_redacted_count ?? 0} locally scrubbed</span>
+            <div className="flex justify-between items-center py-2 border-b border-stone-100 text-stone-700">
+              <span className="text-stone-500 font-medium">Redacted Secrets Count</span>
+              <span className="font-mono font-bold text-[#0c4a3e]">{latestPoint?.security?.secrets_redacted_count ?? 0} locally scrubbed</span>
             </div>
-            <div className="flex justify-between items-center py-1.5 border-b border-slate-800 text-slate-300">
-              <span className="text-slate-400">Failed Logins Tracked</span>
-              <span className="font-mono">{latestPoint?.security?.auth_failure_count ?? 0} (count only, no usernames/IPs)</span>
+            <div className="flex justify-between items-center py-2 border-b border-stone-100 text-stone-700">
+              <span className="text-stone-500 font-medium">Failed Logins Tracked</span>
+              <span className="font-mono font-bold text-stone-800">{latestPoint?.security?.auth_failure_count ?? 0} (count only, no usernames/IPs)</span>
             </div>
           </div>
         </div>

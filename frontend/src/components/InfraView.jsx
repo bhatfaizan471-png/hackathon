@@ -17,52 +17,52 @@ export default function InfraView() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-white tracking-tight">Infrastructure Telemetry</h2>
-          <p className="text-xs text-slate-400">Live CPU, RAM, and Disk utilization for {activeTenant.name}</p>
+          <h2 className="text-xl font-bold text-[#0c4a3e] tracking-tight">Infrastructure Telemetry</h2>
+          <p className="text-xs text-stone-500">Live CPU, RAM, and Disk utilization for {activeTenant.name}</p>
         </div>
-        <div className="text-xs text-slate-400 font-mono">
+        <div className="text-xs text-stone-600 font-semibold bg-white border border-stone-200 px-3 py-1.5 rounded-xl shadow-sm">
           {telemetry.length} time-series samples
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* CPU Chart with Threshold Band */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-slate-200">CPU Utilization (%)</h3>
-            <span className="text-[10px] text-amber-400 font-mono">Fair: &gt;75% | Poor: &gt;90%</span>
+            <h3 className="text-sm font-bold text-[#0c4a3e]">CPU Utilization (%)</h3>
+            <span className="text-[10px] text-stone-500 font-mono font-medium">Fair: &gt;75% | Poor: &gt;90%</span>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="time" stroke="#64748b" tick={{ fontSize: 10 }} />
                 <YAxis stroke="#64748b" domain={[0, 100]} tick={{ fontSize: 10 }} />
-                <Tooltip contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155", fontSize: "11px" }} />
-                <ReferenceLine y={75} stroke="#f59e0b" strokeDasharray="3 3" label={{ value: "Fair (75%)", fill: "#f59e0b", fontSize: 10 }} />
-                <ReferenceLine y={90} stroke="#ef4444" strokeDasharray="3 3" label={{ value: "Poor (90%)", fill: "#ef4444", fontSize: 10 }} />
-                <Line type="monotone" dataKey="cpu" stroke="#06b6d4" strokeWidth={2} dot={false} name="CPU %" />
+                <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderColor: "#cbd5e1", borderRadius: "8px", fontSize: "11px", boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }} />
+                <ReferenceLine y={75} stroke="#d97706" strokeDasharray="3 3" label={{ value: "Fair (75%)", fill: "#d97706", fontSize: 10 }} />
+                <ReferenceLine y={90} stroke="#dc2626" strokeDasharray="3 3" label={{ value: "Poor (90%)", fill: "#dc2626", fontSize: 10 }} />
+                <Line type="monotone" dataKey="cpu" stroke="#0c4a3e" strokeWidth={2.5} dot={false} name="CPU %" />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Memory & Disk Chart */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-slate-200">Memory & Disk (%)</h3>
-            <span className="text-[10px] text-amber-400 font-mono">Mem Fair: &gt;80%</span>
+            <h3 className="text-sm font-bold text-[#0c4a3e]">Memory & Disk (%)</h3>
+            <span className="text-[10px] text-stone-500 font-mono font-medium">Mem Fair: &gt;80%</span>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="time" stroke="#64748b" tick={{ fontSize: 10 }} />
                 <YAxis stroke="#64748b" domain={[0, 100]} tick={{ fontSize: 10 }} />
-                <Tooltip contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155", fontSize: "11px" }} />
-                <ReferenceLine y={80} stroke="#f59e0b" strokeDasharray="3 3" />
-                <Line type="monotone" dataKey="memory" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Memory %" />
-                <Line type="monotone" dataKey="disk" stroke="#10b981" strokeWidth={2} dot={false} name="Disk %" />
+                <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderColor: "#cbd5e1", borderRadius: "8px", fontSize: "11px", boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }} />
+                <ReferenceLine y={80} stroke="#d97706" strokeDasharray="3 3" />
+                <Line type="monotone" dataKey="memory" stroke="#059669" strokeWidth={2} dot={false} name="Memory %" />
+                <Line type="monotone" dataKey="disk" stroke="#0284c7" strokeWidth={2} dot={false} name="Disk %" />
               </LineChart>
             </ResponsiveContainer>
           </div>
