@@ -1,0 +1,41 @@
+{
+  "comment": "Starting values (our recommendation, not from the hackathon PDF). Tune in Stage 7. A host's state is its worst signal.",
+  "send_interval_s": 5,
+  "stale": {
+    "fair_after_missed_intervals": 3,
+    "poor_after_seconds_without_heartbeat": 60
+  },
+  "baseline": {
+    "method": "ewma_zscore",
+    "ewma_alpha": 0.1,
+    "warmup_samples": 30,
+    "sustain_seconds": 20,
+    "zscore_good": 2.0,
+    "zscore_fair": 3.0,
+    "zscore_poor": 4.0
+  },
+  "metrics": {
+    "cpu_percent":         {"fair_above": 75, "poor_above": 90, "poor_sustain_s": 120},
+    "memory_percent":      {"fair_above": 80, "poor_above": 90},
+    "disk_percent":        {"good_above": 70, "fair_above": 80, "poor_above": 90},
+    "net_latency_ms":      {"fair_multiple_of_baseline": 2, "poor_multiple_of_baseline": 4},
+    "packet_loss_percent": {"good_above": 0, "fair_above": 1, "poor_above": 5}
+  },
+  "security": {
+    "window_s": 60,
+    "auth_failures_fair_at": 5,
+    "auth_failures_poor_at": 20
+  },
+  "alerting": {
+    "cooldown_s": 120,
+    "alert_target_seconds": 15
+  },
+  "correlation": {
+    "window_s": 120,
+    "group_by": ["tenant_id", "source_id_or_customer_facing_service"]
+  },
+  "targets": {
+    "collection_to_dashboard_p95_s": 10,
+    "offline_detection_s": 60
+  }
+}

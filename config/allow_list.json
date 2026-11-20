@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "comment": "Only these fields may leave the collector. Anything else is dropped by the payload builder.",
+  "fields": {
+    "schema_version": {"type": "string", "enum": ["1.0"]},
+    "payload_id": {"type": "uuid"},
+    "tenant_id": {"type": "string", "max_len": 64},
+    "collector_id": {"type": "string", "max_len": 64},
+    "collector_version": {"type": "string", "max_len": 20},
+    "source_id": {"type": "string", "pattern": "^src_[0-9a-f]{10}$"},
+    "source_role": {"type": "string", "enum": ["employee_laptop", "web_server", "database_server", "app_server", "network_device"]},
+    "customer_facing": {"type": "string", "max_len": 40, "nullable": true},
+    "seq": {"type": "integer", "min": 0},
+    "event_time_utc": {"type": "iso8601_utc"},
+    "sent_time_utc": {"type": "iso8601_utc"},
+    "source_timezone": {"type": "string", "max_len": 40},
+    "config_version": {"type": "string", "max_len": 20},
+    "heartbeat.uptime_s": {"type": "integer", "min": 0},
+    "heartbeat.buffer_depth": {"type": "integer", "min": 0},
+    "metrics.cpu_percent": {"type": "number", "min": 0, "max": 100},
+    "metrics.memory_percent": {"type": "number", "min": 0, "max": 100},
+    "metrics.disk_percent": {"type": "number", "min": 0, "max": 100},
+    "metrics.net_latency_ms": {"type": "number", "min": 0, "nullable": true},
+    "metrics.packet_loss_percent": {"type": "number", "min": 0, "max": 100},
+    "metrics.bandwidth_in_kbps": {"type": "number", "min": 0},
+    "metrics.bandwidth_out_kbps": {"type": "number", "min": 0},
+    "metrics.service_up": {"type": "boolean"},
+    "security.auth_failure_count": {"type": "integer", "min": 0},
+    "security.window_s": {"type": "integer", "min": 1},
+    "security.risk_level": {"type": "string", "enum": ["none", "low", "medium", "high", "critical"]},
+    "security.secrets_redacted_count": {"type": "integer", "min": 0},
+    "local_health.state": {"type": "string", "enum": ["excellent", "good", "fair", "poor"]},
+    "local_health.reasons": {"type": "string_list", "max_items": 5, "max_len": 120},
+    "alerts[].category": {"type": "string", "enum": ["infra", "network", "security", "collector"]},
+    "alerts[].severity": {"type": "string", "enum": ["info", "low", "medium", "high", "critical"]},
+    "alerts[].context": {"type": "string", "max_len": 140}
+  },
+  "max_alerts_per_payload": 10,
+  "never_send": [
+    "raw_log", "log_line", "username", "password", "token", "api_key", "secret",
+    "ip_address", "hostname", "file_path", "command_line", "free_text"
+  ]
+}
