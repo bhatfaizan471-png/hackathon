@@ -8,11 +8,58 @@
 |-------|------|--------|-------|
 | 2 | Architecture & Data Contracts | ✅ DONE | Schema validator passes all 3 tests |
 | 3 | Collector — core agent | ✅ DONE | 9/9 pytest pass; redactor, buffer, simulator |
-| 4 | Backend — FastAPI ingest + Firestore rules | ⬜ TODO | |
+| 4 | Backend — FastAPI ingest + Firestore rules | ✅ DONE | 7/7 pytest pass; auth, tenant isolation, watchdog, seed |
 | 5 | Dashboard — React / Vite scaffold | ⬜ TODO | |
 | 6 | AIOps — anomaly detection, correlation, recommendations | ⬜ TODO | |
 | 7 | Integration & end-to-end demo path | ⬜ TODO | |
 | 8 | Polish, judging criteria, final commit | ⬜ TODO | |
+
+---
+
+## Stage 4 — Detail
+
+### Exit-gate checklist
+- [x] Bad or missing API key returns 401
+- [x] Collector cannot write into another tenant (tenant validated server-side -> 403)
+- [x] Sending same payload twice creates exactly one document (idempotent, returns status: duplicate)
+- [x] Out-of-order payloads stored with correct event_time_utc
+- [x] Unknown fields dropped; forbidden fields rejected (422)
+- [x] Rules test: Company A cannot read Company B; client writes denied
+- [x] Watchdog marks silent collector Poor within 60s
+- [x] Daily write count reported (~17,280/day telemetry)
+
+### Files created / changed
+| File | Action |
+|------|--------|
+| `backend/__init__.py` | Created |
+| `backend/config.py` | Created |
+| `backend/firestore_client.py` | Created — Admin SDK & mock fallback |
+| `backend/auth.py` | Created — Bearer key & SHA-256 verification |
+| `backend/schema_validator.py` | Created — allow_list & forbidden filter |
+| `backend/ingest.py` | Created — POST /v1/ingest endpoint |
+| `backend/watchdog.py` | Created — 60s silent collector monitor |
+| `backend/main.py` | Created — FastAPI app & lifespan |
+| `backend/seed.py` | Created — demo tenants & collector secrets |
+| `firestore.rules` | Created — deny-by-default, tenant claim auth |
+| `firebase.json` | Created — emulator configuration |
+| `firestore.indexes.json` | Created — composite indexes |
+| `.firebaserc` | Created — default project alias |
+| `render.yaml` | Created — Render deploy configuration |
+| `backend/tests/test_ingest.py` | Created — tests 1-5 |
+| `backend/tests/test_rules.py` | Created — test 6 |
+| `backend/tests/test_watchdog.py` | Created — test 7 |
+
+### Test output
+```
+backend/tests/test_ingest.py::test_1_bad_or_missing_api_key_returns_401 PASSED
+backend/tests/test_ingest.py::test_2_tenant_mismatch_returns_403 PASSED
+backend/tests/test_ingest.py::test_3_idempotent_duplicate_payload PASSED
+backend/tests/test_ingest.py::test_4_out_of_order_payloads_store_event_time_utc PASSED
+backend/tests/test_ingest.py::test_5_unknown_fields_dropped_and_forbidden_rejected PASSED
+backend/tests/test_rules.py::test_6_firestore_rules_tenant_isolation_and_write_denial PASSED
+backend/tests/test_watchdog.py::test_7_watchdog_marks_silent_collector_poor_after_60s PASSED
+7 passed in 0.69s
+```
 
 ---
 

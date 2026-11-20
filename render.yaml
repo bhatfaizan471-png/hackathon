@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: nexus-observe-backend
+    runtime: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: FIREBASE_PROJECT_ID
+        value: hackathon-c30ed
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: ./serviceAccount.json
+      - key: WATCHDOG_OFFLINE_SECONDS
+        value: "60"

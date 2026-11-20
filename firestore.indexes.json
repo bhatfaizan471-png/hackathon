@@ -1,0 +1,20 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "telemetry",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "event_time_utc", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "alerts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "event_time_utc", "order": "DESCENDING"},
+        {"fieldPath": "severity", "order": "DESCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Tenant data: authenticated user can only read their own tenant
+    match /tenants/{tenantId}/{document=**} {
+      allow read: if request.auth != null
+                  && request.auth.token.tenant_id == tenantId;
+      allow write: if false;  // Client writes strictly denied; backend uses Admin SDK
+    }
+
+    // collector_credentials: server-side only
+    match /collector_credentials/{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
