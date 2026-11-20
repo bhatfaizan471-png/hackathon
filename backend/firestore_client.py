@@ -9,7 +9,7 @@ class MockDocumentReference:
         self.id = doc_id
         self._store = store_dict
 
-    def get(self):
+    def get(self, transaction=None):
         exists = self.id in self._store
         data = self._store.get(self.id, {})
         class DocSnapshot:
@@ -56,6 +56,20 @@ class MockCollectionReference:
                 return dict(self._data)
         return [MockItem(k, v) for k, v in items.items()]
 
+class MockTransaction:
+    def __init__(self, db: "MockFirestoreClient"):
+        self._db = db
+
+    def get(self, ref):
+        # Real Google Cloud Firestore SDK returns a generator yielding snapshots
+        yield ref.get()
+
+    def set(self, ref, data: dict, merge: bool = False):
+        ref.set(data, merge=merge)
+
+    def update(self, ref, data: dict):
+        ref.update(data)
+
 class MockFirestoreClient:
     """In-memory Firestore client used for unit tests or when USE_MOCK_FIRESTORE=true."""
     def __init__(self):
@@ -63,6 +77,9 @@ class MockFirestoreClient:
 
     def collection(self, path: str):
         return MockCollectionReference(path, self._store)
+
+    def transaction(self):
+        return MockTransaction(self)
 
     def reset(self):
         self._store.clear()
@@ -117,3 +134,23 @@ def get_db():
 def set_db(custom_db):
     global _db
     _db = custom_db
+
+
+def run_transaction(db, callback):
+    """
+    Executes callback(transaction) in a Firestore transaction.
+    Works for both real Google Cloud Firestore client and MockFirestoreClient.
+    """
+    if isinstance(db, MockFirestoreClient):
+        tx = db.transaction()
+        return callback(tx)
+    else:
+        from google.cloud import firestore
+        tx = db.transaction()
+
+        @firestore.transactional
+        def _in_tx(transaction):
+            return callback(transaction)
+
+        return _in_tx(tx)
+

@@ -51,15 +51,15 @@ class FakeCollector:
         self._start = time.monotonic()
         self._seq = 0
 
-        # Per-collector drifting metrics
-        self._cpu = _DriftValue(30, 0, 95, step=2)
-        self._mem = _DriftValue(50, 10, 95, step=1)
-        self._disk = _DriftValue(60, 10, 99, step=0.2)
-        self._latency = _DriftValue(20, 1, 300, step=5)
+        # Per-collector drifting metrics — sitting comfortably below thresholds
+        self._cpu = _DriftValue(30, 10, 50, step=1.5)
+        self._mem = _DriftValue(45, 20, 60, step=1)
+        self._disk = _DriftValue(50, 20, 65, step=0.2)
+        self._latency = _DriftValue(20, 10, 45, step=2)
         self._loss = _DriftValue(0.25, 0.1, 0.4, step=0.05)
         self._bw_in = _DriftValue(500, 50, 5000, step=50)
         self._bw_out = _DriftValue(200, 10, 3000, step=30)
-        self._auth_failures = _DriftValue(1, 0, 15, step=0.5)
+        self._auth_failures = _DriftValue(0, 0, 1, step=0.2)
         self.scenario: str | None = None
 
     def _risk_level(self, failures: int) -> str:
@@ -134,6 +134,7 @@ class FakeCollector:
         if active_scenario:
             from scripts.scenario_injector import inject_scenario
             raw = inject_scenario(raw, active_scenario)
+            raw.setdefault("heartbeat", {})["scenario"] = active_scenario
 
         return raw
 

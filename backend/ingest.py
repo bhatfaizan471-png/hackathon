@@ -9,6 +9,11 @@ from backend.firestore_client import get_db
 
 router = APIRouter()
 
+AIOPS_METRICS = {
+    "errors_count": 0,
+    "last_error": None,
+}
+
 @router.post("/v1/ingest")
 async def ingest(
     request: Request,
@@ -120,8 +125,6 @@ async def ingest(
         "collector_version": filtered_payload.get("collector_version"),
         "config_version": filtered_payload.get("config_version"),
         "status": "online",
-        "health_state": lh.get("state", "good"),
-        "health_reasons": lh.get("reasons", []),
         "last_seen_utc": now_iso,
         "cpu_percent": metrics.get("cpu_percent"),
         "memory_percent": metrics.get("memory_percent"),
@@ -149,7 +152,9 @@ async def ingest(
     try:
         from backend.aiops.processor import process_telemetry
         process_telemetry(filtered_payload, db=db)
-    except Exception:
-        logging.exception("AIOps processing failed for payload %s", payload_id)
+    except Exception as e:
+        AIOPS_METRICS["errors_count"] += 1
+        AIOPS_METRICS["last_error"] = f"{type(e).__name__}: {str(e)}"
+        logging.exception("AIOps processing failed for payload %s: %s", payload_id, e)
 
     return {"status": "accepted", "payload_id": payload_id}

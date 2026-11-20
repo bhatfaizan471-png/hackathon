@@ -3,7 +3,7 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-from backend.ingest import router as ingest_router
+from backend.ingest import router as ingest_router, AIOPS_METRICS
 from backend.remediation import router as remediation_router
 from backend.watchdog import watchdog_task
 from backend.seed import seed_database
@@ -64,6 +64,8 @@ def healthcheck():
         "service": "nexus-observe-backend",
         "version": "1.0.0",
         "firestore": "mock" if is_mock else "ok",
+        "aiops_errors": AIOPS_METRICS["errors_count"],
+        "last_error": AIOPS_METRICS["last_error"],
     }
 
 @app.get("/v1/data-summary")

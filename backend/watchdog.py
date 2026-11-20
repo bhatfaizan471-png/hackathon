@@ -36,27 +36,46 @@ def check_and_update_silent_collectors(
                     last_seen = datetime.fromisoformat(last_seen_str.replace("Z", "+00:00"))
                     diff_seconds = (now - last_seen).total_seconds()
                     if diff_seconds > offline_threshold_seconds:
-                        # Mark collector poor and offline
-                        doc_ref = col_ref.document(doc.id)
-                        from_state = data.get("health_state", "unknown")
-                        doc_ref.update({
-                            "status": "offline",
-                            "health_state": "poor",
-                            "health_reasons": [
-                                f"No heartbeat received for {int(diff_seconds)}s (exceeded {offline_threshold_seconds}s limit)"
-                            ],
-                        })
-                        # Log health event
-                        event_id = f"evt_{doc.id}_{int(now.timestamp())}"
-                        event_data = {
-                            "source_id": data.get("source_id", doc.id),
-                            "from_state": from_state,
-                            "to_state": "poor",
-                            "reason": f"No heartbeat for {int(diff_seconds)}s",
-                            "time_utc": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                        }
-                        db.collection(f"tenants/{tenant_id}/health_history").document(event_id).set(event_data)
-                        updated_count += 1
+                        from backend.firestore_client import run_transaction
+
+                        def _watchdog_tx(transaction):
+                            doc_ref = col_ref.document(doc.id)
+                            raw_snap = transaction.get(doc_ref)
+                            snap = next(iter(raw_snap), None) if (hasattr(raw_snap, "__iter__") and not hasattr(raw_snap, "exists")) else raw_snap
+                            if snap is None or not snap.exists:
+                                return False
+                            current_data = snap.to_dict()
+                            if current_data.get("status") == "offline" and current_data.get("health_state") == "poor":
+                                return False
+
+                            from_state = current_data.get("health_state", "unknown")
+                            transaction.update(doc_ref, {
+                                "status": "offline",
+                                "health_state": "poor",
+                                "health_reasons": [
+                                    f"No heartbeat received for {int(diff_seconds)}s (exceeded {offline_threshold_seconds}s limit)"
+                                ],
+                                "pending_state": None,
+                                "consecutive_count": 0,
+                            })
+                            # Log health event if state changed
+                            if from_state != "poor":
+                                event_id = f"evt_{doc.id}_{int(now.timestamp() * 1000)}"
+                                event_data = {
+                                    "id": event_id,
+                                    "source_id": current_data.get("source_id", doc.id),
+                                    "collector_id": doc.id,
+                                    "from_state": from_state,
+                                    "to_state": "poor",
+                                    "reason": f"No heartbeat for {int(diff_seconds)}s",
+                                    "time_utc": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                                }
+                                hist_ref = db.collection(f"tenants/{tenant_id}/health_history").document(event_id)
+                                transaction.set(hist_ref, event_data)
+                            return True
+
+                        if run_transaction(db, _watchdog_tx):
+                            updated_count += 1
                 except Exception:
                     pass
 

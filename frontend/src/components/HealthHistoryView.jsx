@@ -40,7 +40,7 @@ export default function HealthHistoryView() {
             ) : (
               <tr>
                 <td colSpan={4} className="py-8 text-center text-stone-500 italic">
-                  No health transition events recorded yet. Transitions occur when heartbeats lag &gt;15s or collectors drop offline.
+                  No health transition events recorded yet. Transitions occur when health state changes or a collector goes Poor after 60s without a heartbeat.
                 </td>
               </tr>
             )}

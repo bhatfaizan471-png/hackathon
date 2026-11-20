@@ -18,6 +18,7 @@
     "heartbeat.uptime_s": {"type": "integer", "min": 0},
     "heartbeat.buffer_depth": {"type": "integer", "min": 0},
     "heartbeat.simulated": {"type": "boolean", "nullable": true},
+    "heartbeat.scenario": {"type": "string", "max_len": 40, "nullable": true},
     "metrics.cpu_percent": {"type": "number", "min": 0, "max": 100},
     "metrics.memory_percent": {"type": "number", "min": 0, "max": 100},
     "metrics.disk_percent": {"type": "number", "min": 0, "max": 100},

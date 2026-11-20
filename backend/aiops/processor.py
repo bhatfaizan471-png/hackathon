@@ -3,7 +3,7 @@ from typing import Dict, Any, List, Optional
 from backend.aiops.anomaly_detector import BaselineTracker
 from backend.aiops.alert_manager import AlertManager
 from backend.aiops.correlator import Correlator
-from backend.aiops.health_engine import evaluate_health_state, record_state_transition
+from backend.aiops.health_engine import evaluate_health_state, record_state_transition, process_host_health
 
 # Shared singleton instances across backend
 baseline_tracker = BaselineTracker()
@@ -99,14 +99,18 @@ def process_telemetry(payload: Dict[str, Any], db=None) -> Dict[str, Any]:
             if db:
                 db.collection(f"tenants/{tenant_id}/incidents").document(inc["id"]).set(inc)
 
-    # 5. Evaluate health state & state transitions
+    # 5. Evaluate health state & state transitions with hysteresis & transaction
+    collector_id = payload.get("collector_id", source_id)
     state, reasons = evaluate_health_state(metrics, security)
-    last_state = payload.get("local_health", {}).get("state", "excellent")
-    transition = None
-    if state != last_state:
-        transition = record_state_transition(
-            db, tenant_id, source_id, last_state, state, "; ".join(reasons), now_iso
-        )
+    transition = process_host_health(
+        db=db,
+        tenant_id=tenant_id,
+        collector_id=collector_id,
+        source_id=source_id,
+        metrics=metrics,
+        security=security,
+        now_iso=now_iso,
+    )
 
     return {
         "health_state": state,

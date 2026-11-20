@@ -14,6 +14,11 @@
     "zscore_fair": 3.0,
     "zscore_poor": 4.0
   },
+  "hysteresis": {
+    "consecutive_breaches_to_degrade": 3,
+    "consecutive_samples_to_recover": 3,
+    "recovery_margin_multiplier": 0.8
+  },
   "metrics": {
     "cpu_percent":         {"fair_above": 75, "poor_above": 90, "poor_sustain_s": 120},
     "memory_percent":      {"fair_above": 80, "poor_above": 90},
