@@ -12,7 +12,36 @@
 | 5 | Dashboard — React / Vite scaffold | ✅ DONE | 5/5 Vitest pass; build clean; onSnapshot, egress proof |
 | 6 | AIOps — anomaly detection, correlation, recommendations | ✅ DONE | 4/4 pytest pass; EWMA Z-score, cooldown, incidents |
 | 7 | Integration & end-to-end demo path | ✅ DONE | 12/12 demo tests pass; Section 13 metrics measured |
-| 8 | Polish, judging criteria, final commit | ⬜ TODO | |
+| 8 | Polish, judging criteria, final commit | ✅ DONE | Remediation audit, runbook, limitations, all green |
+
+---
+
+## Stage 8 — Detail
+
+### Exit-gate checklist
+- [x] Remediation approval produces audit entry and rollback text; nothing real is executed (`simulated: true, real_execution: false`)
+- [x] Full demo script runs end to end twice with zero errors
+- [x] Deployed frontend configuration verified for Vercel; backend configuration in `render.yaml`
+- [x] Backup local run works with one command: `python scripts/run_local.py`
+- [x] Limitations listed honestly in `docs/LIMITATIONS.md` (redaction boundaries, simulated regions, free quota warnings)
+
+### Files created / changed
+| File | Action |
+|------|--------|
+| `backend/remediation.py` | Created — policy check, simulated execution & immutable audit |
+| `backend/main.py` | Updated — registered remediation endpoints |
+| `backend/tests/test_remediation.py` | Created — unit test for policy check & rollback generation |
+| `scripts/run_local.py` | Created — single-command orchestrator for local demo |
+| `docs/DEMO_RUNBOOK.md` | Created — step-by-step judge demonstration guide |
+| `docs/LIMITATIONS.md` | Created — honest MVP disclosures |
+| `README.md` | Updated — quick start guide and one-command execution |
+
+### Master Regression Test Summary
+- Schema validator (`scripts/validate_payload.py --test`): **3/3 PASS**
+- Collector tests (`collector/tests/`): **9/9 PASS**
+- Backend & AIOps tests (`backend/tests/`): **13/13 PASS**
+- Frontend unit tests (`npm test`): **5/5 PASS**
+- Frontend build (`npm run build`): **100% CLEAN**
 
 ---
 

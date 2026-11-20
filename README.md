@@ -1,27 +1,72 @@
 # NEXUS OBSERVE
 
-Secure, AIOps-driven, two-tier observability. Raw data stays in the customer environment; only approved metadata reaches the SaaS.
+Secure, AIOps-driven, two-tier infrastructure observability. Raw data stays in the customer environment; only approved metadata reaches the SaaS.
 
-CICADA 2026 hackathon project. Build budget: 15 hours.
+Built for the CICADA 2026 Smart Observability Hackathon.
 
-## Folder structure
+---
+
+## ⚡ Quick Start (One Command)
+
+To run the complete platform locally:
+
+```powershell
+python scripts/run_local.py
+```
+
+This starts:
+1. Demo database seeding (tenants and collector credentials).
+2. FastAPI SaaS Ingest Server (`http://127.0.0.1:8000`).
+3. Autonomous simulated collectors (3 hosts: laptop, web server, DB).
+
+To launch the real-time Dashboard:
+```powershell
+cd frontend
+npm run dev
+```
+Open [http://localhost:5173](http://localhost:5173).
+
+---
+
+## 🧪 Testing
+
+Run the full automated test suite:
+
+```powershell
+# Python unit, AIOps, and integration tests
+.\.venv\Scripts\python.exe -m pytest collector/tests/ -v
+.\.venv\Scripts\python.exe -m pytest backend/tests/ -v
+
+# Frontend unit & regression tests
+cd frontend ; npm test ; npm run build
+```
+
+---
+
+## 📁 Project Structure
 
 ```
 nexus-observe/
-  README.md              <- you are here
-  .env.example           <- copy to .env (never commit .env)
-  .gitignore
+  README.md              <- Quick start & commands
+  .env.example           <- Environment template
+  firestore.rules        <- Deny-by-default tenant-scoped Firestore rules
   docs/
-    DECISIONS.md         <- locked decisions and open questions
-    ARCHITECTURE.md      <- two tiers, trust boundary, every network hop
-    PAYLOAD_SCHEMA.md    <- the exact payload the collector sends
-    FIRESTORE_LAYOUT.md  <- collections, document IDs, tenant rules
+    PROGRESS.md          <- Real stage verification & progress tracking
+    PRD.md               <- Permanent architecture & privacy rules
+    DEMO_RUNBOOK.md      <- Judge demonstration walkthrough
+    LIMITATIONS.md       <- Honest MVP boundaries & disclosures
+    PAYLOAD_SCHEMA.md    <- Single source of truth schema
+    ARCHITECTURE.md      <- Two tiers, trust boundary, every network hop
   config/
-    allow_list.json      <- fields allowed to leave the collector
-    thresholds.json      <- health-state thresholds (configurable)
-  collector/             <- Tier 1 (Python + psutil)      Stage 3
-  backend/               <- Tier 2 (FastAPI on Render)    Stage 4, 6
-  frontend/              <- Dashboard (React + Vite)      Stage 5
+    allow_list.json      <- Machine-readable allow-list
+    thresholds.json      <- Health thresholds & EWMA tuning
+  collector/             <- Tier 1 (Python + psutil)
+  backend/               <- Tier 2 (FastAPI SaaS + AIOps Engine)
+  frontend/              <- Live Dashboard (React + Vite + Tailwind + Recharts)
+  scripts/
+    run_local.py         <- One-command local runner
+    run_benchmarks.py    <- Performance & latency benchmarks
+    scenario_injector.py <- Anomaly injector
 ```
 
 ## Stage 2: what to do now (about 1 hour, all 3 members)

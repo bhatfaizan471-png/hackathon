@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.ingest import router as ingest_router
+from backend.remediation import router as remediation_router
 from backend.watchdog import watchdog_task
 
 @asynccontextmanager
@@ -33,6 +34,7 @@ app.add_middleware(
 )
 
 app.include_router(ingest_router)
+app.include_router(remediation_router)
 
 @app.get("/health")
 def healthcheck():
