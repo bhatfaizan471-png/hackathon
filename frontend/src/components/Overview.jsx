@@ -1,12 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTenant } from "../context/TenantContext";
 import { useBackendHealth } from "../utils/backendHealth";
 import { calculateStaleness } from "../utils/staleness";
-import { Server, Activity, ShieldCheck, AlertTriangle, ArrowUpRight, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { computeSha256 } from "../utils/crypto";
+import { Server, Activity, ShieldCheck, AlertTriangle, ArrowUpRight, CheckCircle2, XCircle, RefreshCw, Send, Check } from "lucide-react";
 
 export default function Overview({ onNavigate }) {
   const { activeTenant, collectors, telemetry, alerts, incidents } = useTenant();
-  const { status: backendStatus, details: backendDetails, latencyMs, lastChecked, checkHealth } = useBackendHealth();
+  const { status: backendStatus, details: backendDetails, latencyMs, checkHealth } = useBackendHealth();
+
+  const [isSending, setIsSending] = useState(false);
+  const [lastSentId, setLastSentId] = useState(null);
 
   const totalHosts = collectors.length;
   let onlineCount = 0;
@@ -29,6 +33,91 @@ export default function Overview({ onNavigate }) {
     Good: "text-[#0c4a3e] border-[#cbe6d5] bg-[#e7f3ec]",
     Fair: "text-amber-800 border-amber-200 bg-amber-50",
     Poor: "text-rose-800 border-rose-200 bg-rose-50",
+  };
+
+  const handleSendSampleTelemetry = async () => {
+    setIsSending(true);
+    try {
+      const now = new Date();
+      const nowIso = now.toISOString();
+      const randomCpu = Math.round(30 + Math.random() * 45);
+      const randomMem = Math.round(45 + Math.random() * 25);
+      const randomLatency = Math.round(15 + Math.random() * 35);
+      const payloadId = "sample-" + Math.random().toString(36).substring(2, 10) + "-" + Date.now();
+
+      const samplePayload = {
+        schema_version: "1.0",
+        payload_id: payloadId,
+        tenant_id: activeTenant.id,
+        collector_id: "col_sim_laptop_01",
+        collector_version: "0.1.0",
+        source_id: "src_1a2b3c4d5e",
+        source_role: "employee_laptop",
+        customer_facing: "login",
+        seq: Date.now(),
+        event_time_utc: nowIso,
+        sent_time_utc: nowIso,
+        source_timezone: "Asia/Kolkata",
+        config_version: "cfg-1",
+        heartbeat: { uptime_s: 3600, buffer_depth: 0, simulated: true },
+        metrics: {
+          cpu_percent: randomCpu,
+          memory_percent: randomMem,
+          disk_percent: 44.0,
+          net_latency_ms: randomLatency,
+          packet_loss_percent: 0.0,
+          bandwidth_in_kbps: 180.0,
+          bandwidth_out_kbps: 75.0,
+          service_up: true,
+        },
+        security: {
+          auth_failure_count: 0,
+          window_s: 60,
+          risk_level: "none",
+          secrets_redacted_count: 0,
+        },
+        local_health: {
+          state: "excellent",
+          reasons: ["Manual sample telemetry test"],
+        },
+        alerts: [],
+      };
+
+      const jsonStr = JSON.stringify(samplePayload);
+      const sha256 = await computeSha256(jsonStr);
+
+      const headers = {
+        "Authorization": "Bearer demo-key-laptop-01",
+        "X-Collector-Id": "col_sim_laptop_01",
+        "X-Payload-SHA256": sha256,
+        "Content-Type": "application/json",
+      };
+
+      // Try proxy route first, fallback to direct 127.0.0.1:8000
+      let res;
+      try {
+        res = await fetch("/api/v1/ingest", {
+          method: "POST",
+          headers,
+          body: jsonStr,
+        });
+      } catch (e) {
+        res = await fetch("http://127.0.0.1:8000/v1/ingest", {
+          method: "POST",
+          headers,
+          body: jsonStr,
+        });
+      }
+
+      if (res.ok) {
+        setLastSentId(payloadId);
+        setTimeout(() => setLastSentId(null), 6000);
+      }
+    } catch (e) {
+      console.warn("Could not send sample telemetry:", e);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -81,33 +170,47 @@ export default function Overview({ onNavigate }) {
             )}
           </div>
 
-          <div className="flex items-center space-x-3">
-            <span className="text-xs text-stone-500 font-medium">
-              Latency: <strong className="text-stone-800">{latencyMs != null ? `${latencyMs}ms` : "—"}</strong>
-            </span>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleSendSampleTelemetry}
+              disabled={isSending}
+              className="flex items-center space-x-1.5 text-xs font-bold text-white bg-[#0c4a3e] hover:bg-[#093a30] px-3.5 py-1.5 rounded-xl transition shadow-sm"
+            >
+              {lastSentId ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Send className="h-3 w-3" />}
+              <span>{isSending ? "Ingesting..." : lastSentId ? "Data Point Added!" : "Send Test Telemetry"}</span>
+            </button>
+
             <button
               onClick={checkHealth}
-              className="flex items-center space-x-1 text-xs font-semibold text-[#0c4a3e] hover:bg-[#e7f3ec] px-2.5 py-1 rounded-lg border border-[#cbe6d5] transition"
+              className="flex items-center space-x-1 text-xs font-semibold text-[#0c4a3e] hover:bg-[#e7f3ec] px-2.5 py-1.5 rounded-xl border border-[#cbe6d5] transition"
             >
               <RefreshCw className="h-3 w-3" />
-              <span>Ping Backend</span>
+              <span>Ping</span>
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-3 text-xs">
+          <div className="bg-[#f8faf8] p-3 rounded-xl border border-stone-200">
+            <span className="text-stone-500 font-medium">Stored Data Points:</span>
+            <div className="font-mono text-[#0c4a3e] font-extrabold text-sm mt-0.5">
+              {telemetry.length} document(s)
+            </div>
+          </div>
           <div className="bg-[#f8faf8] p-3 rounded-xl border border-stone-200">
             <span className="text-stone-500 font-medium">Ingest API Endpoint:</span>
             <div className="font-mono text-stone-800 font-semibold mt-0.5">POST /v1/ingest</div>
           </div>
           <div className="bg-[#f8faf8] p-3 rounded-xl border border-stone-200">
-            <span className="text-stone-500 font-medium">Healthcheck Route:</span>
-            <div className="font-mono text-stone-800 font-semibold mt-0.5">GET /health (HTTP 200 OK)</div>
+            <span className="text-stone-500 font-medium">Server Latency:</span>
+            <div className="font-mono text-stone-800 font-semibold mt-0.5">
+              {latencyMs != null ? `${latencyMs} ms` : "—"}
+            </div>
           </div>
           <div className="bg-[#f8faf8] p-3 rounded-xl border border-stone-200">
             <span className="text-stone-500 font-medium">Service Version:</span>
             <div className="font-mono text-[#0c4a3e] font-semibold mt-0.5">
-              {backendDetails?.version ? `nexus-observe-backend v${backendDetails.version}` : "FastAPI 0.115+"}
+              {backendDetails?.version ? `v${backendDetails.version}` : "FastAPI 0.115+"}
             </div>
           </div>
         </div>
@@ -201,7 +304,7 @@ export default function Overview({ onNavigate }) {
             </div>
           ) : (
             <div className="text-xs text-stone-500 italic py-8 text-center bg-stone-50 rounded-xl">
-              Awaiting telemetry from active collectors... Run collector with <code>python -m collector.collector --simulate</code>
+              Awaiting telemetry from active collectors... Run collector with <code>python -m collector.collector --simulate</code> or click <strong>Send Test Telemetry</strong> above.
             </div>
           )}
         </div>
