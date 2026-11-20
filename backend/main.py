@@ -6,8 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.ingest import router as ingest_router, AIOPS_METRICS
 from backend.remediation import router as remediation_router
 from backend.watchdog import watchdog_task
-from backend.seed import seed_database
 from backend.firestore_client import get_db, MockFirestoreClient
+from backend.config import CORS_ORIGINS
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,12 +17,6 @@ async def lifespan(app: FastAPI):
         list(db.collection("tenants").limit(1).stream())
     except Exception as e:
         raise RuntimeError(f"Startup verification failed: Firestore is unreachable: {e}") from e
-
-    # Ensure demo tenants and credentials exist on startup
-    try:
-        seed_database()
-    except Exception:
-        pass
 
     # Start background watchdog task (poll every 10 seconds per TASK C)
     task = asyncio.create_task(watchdog_task(interval_seconds=10))
@@ -43,7 +37,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
