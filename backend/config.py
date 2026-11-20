@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 ROOT_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT_DIR / ".env")
 
-FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID", "hackathon-c30ed")
+FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID", "hackathon-5e1a9")
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "./serviceAccount.json")
 WATCHDOG_OFFLINE_SECONDS = int(os.getenv("WATCHDOG_OFFLINE_SECONDS", "60"))
 PORT = int(os.getenv("PORT", "8000"))

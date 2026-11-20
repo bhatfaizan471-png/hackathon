@@ -70,9 +70,9 @@
 
 ## Firebase Project
 
-- **Project ID:** `hackathon-c30ed`
+- **Project ID:** `hackathon-5e1a9`
 - **Region:** default (us-central1 for Firestore unless overridden)
-- **Auth domain:** `hackathon-c30ed.firebaseapp.com`
+- **Auth domain:** `hackathon-5e1a9.firebaseapp.com`
 
 ---
 

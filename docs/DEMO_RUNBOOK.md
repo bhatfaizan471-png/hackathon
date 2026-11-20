@@ -65,4 +65,4 @@ Open [http://localhost:5173](http://localhost:5173).
 ## 3. Cloud Deployment (Render + Vercel)
 
 - **Backend on Render**: Uses `render.yaml` blueprint with Python 3.12, uvicorn, and Firestore Admin SDK.
-- **Frontend on Vercel**: Connects to the Firebase project `hackathon-c30ed` using live Firestore `onSnapshot` listeners.
+- **Frontend on Vercel**: Connects to the Firebase project `hackathon-5e1a9` using live Firestore `onSnapshot` listeners.
