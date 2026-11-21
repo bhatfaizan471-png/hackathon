@@ -36,3 +36,10 @@ LOG_PATH = COLLECTOR_DIR / "tests" / "fixtures" / "sample.log"
 # Egress DB
 EGRESS_DB_PATH = COLLECTOR_DIR / "data" / "egress.sqlite"
 BUFFER_DB_PATH = COLLECTOR_DIR / "data" / "buffer.sqlite"
+
+# Collector and SaaS defaults
+SAAS_INGEST_URL: str = os.getenv("SAAS_INGEST_URL", "http://localhost:8000/v1/ingest")
+COLLECTOR_KEY: str = os.getenv("COLLECTOR_KEY", "")
+COLLECTOR_ID: str = os.getenv("COLLECTOR_ID", "col_demo_laptop_01")
+TENANT_ID: str = os.getenv("TENANT_ID", "tenant_acme_demo")
+SOURCE_ROLE: str = os.getenv("SOURCE_ROLE", "employee_laptop")

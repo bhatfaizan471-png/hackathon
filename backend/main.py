@@ -5,6 +5,7 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from backend.ingest import router as ingest_router, AIOPS_METRICS
 from backend.remediation import router as remediation_router
+from backend.claim import router as claim_router
 from backend.watchdog import watchdog_task
 from backend.firestore_client import get_db, MockFirestoreClient
 from backend.config import CORS_ORIGINS
@@ -45,6 +46,7 @@ app.add_middleware(
 
 app.include_router(ingest_router)
 app.include_router(remediation_router)
+app.include_router(claim_router)
 
 @app.get("/health")
 def healthcheck():

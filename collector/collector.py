@@ -91,7 +91,9 @@ def _send_collector_queue(
         json_bytes = row["json_text"].encode("utf-8")
         sha256 = row["sha256"]
 
-        if simulate or cid in DEMO_SECRETS:
+        if not simulate and default_key:
+            key = default_key
+        elif simulate or cid in DEMO_SECRETS:
             key = DEMO_SECRETS.get(cid, default_key)
         else:
             key = default_key
@@ -224,7 +226,8 @@ def main():
     parser.add_argument("--ingest-url", type=str, default=None, help="Override SaaS ingest URL")
     args = parser.parse_args()
 
-    interval = args.interval if args.interval else SEND_INTERVAL_SECONDS
+    send_interval_env = os.getenv("SEND_INTERVAL_SECONDS")
+    interval = args.interval if args.interval is not None else (int(send_interval_env) if send_interval_env else SEND_INTERVAL_SECONDS)
     ingest_url = args.ingest_url or os.getenv("SAAS_INGEST_URL", "http://localhost:8000/v1/ingest")
 
     signal.signal(signal.SIGINT, _handle_signal)
@@ -235,6 +238,8 @@ def main():
 
     buffer = SQLiteBuffer(BUFFER_DB_PATH)
 
+    start_time = time.time()
+    real_seq = 0
     print(f"[collector] starting — interval={interval}s simulate={args.simulate} url={ingest_url}")
 
     while _running:
@@ -244,15 +249,30 @@ def main():
             raw_payloads = collect_all_raw(buffer_depth=current_depth, scenario=args.scenario)
         else:
             # Real metrics (single host)
+            import socket
+            import hashlib
             from collector.metrics_collector import collect_metrics
             from collector.log_scanner import scan_failed_logins
 
+            tenant_id = os.getenv("TENANT_ID")
+            collector_id = os.getenv("COLLECTOR_ID")
+            collector_key = os.getenv("COLLECTOR_KEY")
+            source_role = os.getenv("SOURCE_ROLE")
+
+            if not tenant_id or not collector_id or not collector_key or not source_role:
+                missing = [var for var, val in [("TENANT_ID", tenant_id), ("COLLECTOR_ID", collector_id), ("COLLECTOR_KEY", collector_key), ("SOURCE_ROLE", source_role)] if not val]
+                print(f"[collector] ERROR: Missing required .env variable(s) for real mode: {', '.join(missing)}")
+                return
+
+            # Derive pseudonymous and stable source_id from salted SHA-256 of hostname
+            hostname = socket.gethostname()
+            salt = os.getenv("SOURCE_ID_SALT", "nexus_salt_v1")
+            source_id = f"src_{hashlib.sha256(f'{salt}:{hostname}'.encode('utf-8')).hexdigest()[:10]}"
+
+            real_seq += 1
             metrics = collect_metrics()
             login_scan = scan_failed_logins(LOG_PATH)
-
-            tenant_id = os.getenv("TENANT_ID", "tenant_acme_demo")
-            collector_id = os.getenv("COLLECTOR_ID", "col_demo_laptop_01")
-            source_role = os.getenv("SOURCE_ROLE", "employee_laptop")
+            uptime_s = int(time.time() - start_time)
 
             raw_payloads = [{
                 "schema_version": "1.0",
@@ -260,14 +280,14 @@ def main():
                 "tenant_id": tenant_id,
                 "collector_id": collector_id,
                 "collector_version": COLLECTOR_VERSION,
-                "source_id": f"src_{collector_id}",
+                "source_id": source_id,
                 "source_role": source_role,
-                "seq": 1,
+                "seq": real_seq,
                 "event_time_utc": datetime.now(timezone.utc).isoformat(),
                 "sent_time_utc": datetime.now(timezone.utc).isoformat(),
                 "source_timezone": "UTC",
                 "config_version": CONFIG_VERSION,
-                "heartbeat": {"uptime_s": 0, "buffer_depth": current_depth},
+                "heartbeat": {"uptime_s": uptime_s, "buffer_depth": current_depth},
                 "metrics": {
                     **metrics,
                     "net_latency_ms": None,
@@ -293,8 +313,8 @@ def main():
             buffer=buffer,
             ingest_url=ingest_url,
             simulate=args.simulate,
-            collector_id=os.getenv("COLLECTOR_ID", "col_demo_laptop_01") if not args.simulate else None,
-            collector_key=os.getenv("COLLECTOR_KEY", "") if not args.simulate else None,
+            collector_id=collector_id if not args.simulate else None,
+            collector_key=collector_key if not args.simulate else None,
         )
 
         time.sleep(interval)
