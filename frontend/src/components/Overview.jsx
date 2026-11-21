@@ -3,7 +3,10 @@ import { useTenant } from "../context/TenantContext";
 import { useBackendHealth } from "../utils/backendHealth";
 import { calculateStaleness } from "../utils/staleness";
 import { computeSha256 } from "../utils/crypto";
+import { getIngestUrls } from "../utils/ingestUrl";
 import { Server, Activity, ShieldCheck, AlertTriangle, ArrowUpRight, CheckCircle2, XCircle, RefreshCw, Send, Check } from "lucide-react";
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
 
 export default function Overview({ onNavigate }) {
   const { activeTenant, collectors, telemetry, alerts, incidents } = useTenant();
@@ -11,6 +14,7 @@ export default function Overview({ onNavigate }) {
 
   const [isSending, setIsSending] = useState(false);
   const [lastSentId, setLastSentId] = useState(null);
+  const [sendError, setSendError] = useState(null);
 
   const totalHosts = collectors.length;
   let onlineCount = 0;
@@ -93,28 +97,64 @@ export default function Overview({ onNavigate }) {
         "Content-Type": "application/json",
       };
 
-      // Try proxy route first, fallback to direct 127.0.0.1:8000
-      let res;
-      try {
-        res = await fetch("/api/v1/ingest", {
-          method: "POST",
-          headers,
-          body: jsonStr,
-        });
-      } catch (e) {
-        res = await fetch("http://127.0.0.1:8000/v1/ingest", {
-          method: "POST",
-          headers,
-          body: jsonStr,
-        });
+      const candidateUrls = getIngestUrls({
+        isProd: import.meta.env.PROD,
+        backendUrl: BACKEND_URL,
+      });
+
+      let res = null;
+      let lastErr = null;
+
+      for (const url of candidateUrls) {
+        try {
+          res = await fetch(url, {
+            method: "POST",
+            headers,
+            body: jsonStr,
+          });
+
+          // Move to next URL if 404 (e.g. dev proxy absent in production)
+          if (res.status === 404) {
+            lastErr = new Error(`Endpoint not found (404) at ${url}`);
+            continue;
+          }
+
+          // Do not retry on 401, 403, 422 or any non-404 status: break immediately
+          break;
+        } catch (e) {
+          lastErr = e;
+          res = null;
+        }
       }
 
-      if (res.ok) {
+      if (res && res.ok) {
         setLastSentId(payloadId);
+        setSendError(null);
         setTimeout(() => setLastSentId(null), 6000);
+      } else if (res) {
+        let detail = "";
+        try {
+          const errData = await res.json();
+          detail = errData.detail
+            ? typeof errData.detail === "string"
+              ? errData.detail
+              : JSON.stringify(errData.detail)
+            : "";
+        } catch {
+          // ignore JSON parse failure
+        }
+        const errMsg = `HTTP ${res.status}${detail ? `: ${detail}` : ""}`;
+        setSendError(errMsg);
+        setTimeout(() => setSendError(null), 8000);
+      } else {
+        const errMsg = lastErr?.message || "Failed to connect to ingest endpoint";
+        setSendError(errMsg);
+        setTimeout(() => setSendError(null), 8000);
       }
     } catch (e) {
       console.warn("Could not send sample telemetry:", e);
+      setSendError(e?.message || "Unexpected error");
+      setTimeout(() => setSendError(null), 8000);
     } finally {
       setIsSending(false);
     }
@@ -174,10 +214,27 @@ export default function Overview({ onNavigate }) {
             <button
               onClick={handleSendSampleTelemetry}
               disabled={isSending}
-              className="flex items-center space-x-1.5 text-xs font-bold text-white bg-[#0c4a3e] hover:bg-[#093a30] px-3.5 py-1.5 rounded-xl transition shadow-sm"
+              title="Send simulated demo payload"
+              className={`flex items-center space-x-1.5 text-xs font-bold text-white px-3.5 py-1.5 rounded-xl transition shadow-sm ${
+                sendError ? "bg-rose-700 hover:bg-rose-800" : "bg-[#0c4a3e] hover:bg-[#093a30]"
+              }`}
             >
-              {lastSentId ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Send className="h-3 w-3" />}
-              <span>{isSending ? "Ingesting..." : lastSentId ? "Data Point Added!" : "Send Test Telemetry"}</span>
+              {sendError ? (
+                <XCircle className="h-3.5 w-3.5 text-rose-200" />
+              ) : lastSentId ? (
+                <Check className="h-3.5 w-3.5 text-emerald-300" />
+              ) : (
+                <Send className="h-3 w-3" />
+              )}
+              <span>
+                {isSending
+                  ? "Ingesting..."
+                  : sendError
+                  ? `Failed: ${sendError}`
+                  : lastSentId
+                  ? "Simulated demo payload sent!"
+                  : "Send Test Telemetry"}
+              </span>
             </button>
 
             <button
