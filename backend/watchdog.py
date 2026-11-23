@@ -35,7 +35,13 @@ def check_and_update_silent_collectors(
                 try:
                     last_seen = datetime.fromisoformat(last_seen_str.replace("Z", "+00:00"))
                     diff_seconds = (now - last_seen).total_seconds()
-                    if diff_seconds > offline_threshold_seconds:
+                    obs_interval = data.get("observed_interval_s")
+                    if obs_interval is not None:
+                        threshold = max(float(offline_threshold_seconds), 3.0 * float(obs_interval))
+                    else:
+                        threshold = float(offline_threshold_seconds)
+
+                    if diff_seconds > threshold:
                         from backend.firestore_client import run_transaction
 
                         def _watchdog_tx(transaction):
@@ -48,12 +54,17 @@ def check_and_update_silent_collectors(
                             if current_data.get("status") == "offline" and current_data.get("health_state") == "poor":
                                 return False
 
+                            current_obs = current_data.get("observed_interval_s", obs_interval)
+                            col_threshold = max(float(offline_threshold_seconds), 3.0 * float(current_obs)) if current_obs is not None else float(offline_threshold_seconds)
+                            if diff_seconds <= col_threshold:
+                                return False
+
                             from_state = current_data.get("health_state", "unknown")
                             transaction.update(doc_ref, {
                                 "status": "offline",
                                 "health_state": "poor",
                                 "health_reasons": [
-                                    f"No heartbeat received for {int(diff_seconds)}s (exceeded {offline_threshold_seconds}s limit)"
+                                    f"No heartbeat received for {int(diff_seconds)}s (exceeded {int(col_threshold)}s limit)"
                                 ],
                                 "pending_state": None,
                                 "consecutive_count": 0,

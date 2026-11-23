@@ -20,9 +20,14 @@ from datetime import datetime, timezone
 import requests
 from dotenv import load_dotenv
 
-from backend.seed import DEMO_SECRETS
+try:
+    from backend.seed import DEMO_SECRETS
+except ImportError:
+    DEMO_SECRETS = {}
+
 from collector.config import (
     BUFFER_DB_PATH,
+    COLLECTOR_DIR,
     COLLECTOR_VERSION,
     CONFIG_VERSION,
     LOG_PATH,
@@ -36,6 +41,8 @@ from collector.sqlite_buffer import SQLiteBuffer
 
 # Ensure .env is loaded
 load_dotenv(PROJECT_ROOT / ".env")
+load_dotenv(COLLECTOR_DIR / ".env")
+load_dotenv()
 
 _running = True
 _db_lock = threading.Lock()
@@ -224,6 +231,7 @@ def main():
     parser.add_argument("--scenario", type=str, default=None, choices=["cpu_spike", "latency_rise", "service_failure", "failed_logins", "collector_outage"], help="Inject anomaly scenario")
     parser.add_argument("--interval", type=int, default=None, help="Override send interval (seconds)")
     parser.add_argument("--ingest-url", type=str, default=None, help="Override SaaS ingest URL")
+    parser.add_argument("--once", action="store_true", help="Send a single batch and exit immediately")
     args = parser.parse_args()
 
     send_interval_env = os.getenv("SEND_INTERVAL_SECONDS")
@@ -316,6 +324,9 @@ def main():
             collector_id=collector_id if not args.simulate else None,
             collector_key=collector_key if not args.simulate else None,
         )
+
+        if args.once:
+            break
 
         time.sleep(interval)
 

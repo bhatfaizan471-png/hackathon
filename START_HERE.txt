@@ -1,0 +1,88 @@
+================================================================================
+                    NEXUS OBSERVE — LOCAL COLLECTOR
+                       Quick Setup Guide (Windows)
+================================================================================
+
+Nexus Observe Collector is a lightweight, privacy-first agent that gathers
+basic system health indicators (CPU, memory, disk, network loss) and streams
+them to your Nexus Observe SaaS monitoring dashboard.
+
+PRIVACY GUARANTEE:
+- Zero Personal Identifiable Information (PII) is ever collected.
+- Never sends usernames, passwords, tokens, API keys, hostnames, IP addresses,
+  file paths, shell commands, or raw log text.
+- Host identity is pseudonymous (derived from a salted one-way SHA-256 hash).
+- All egress payloads are hashed with SHA-256 for cryptographic integrity.
+
+--------------------------------------------------------------------------------
+PREREQUISITES:
+--------------------------------------------------------------------------------
+1. Windows 10 or 11 (64-bit).
+2. Python 3.10 or higher installed from https://www.python.org/
+   IMPORTANT: During installation, check "Add python.exe to PATH".
+3. Your Collector credentials provided by your Nexus Observe administrator:
+   - Tenant ID (e.g., tenant_acme_demo)
+   - Collector ID (e.g., col_laptop_01)
+   - Collector Key (secret bearer token)
+
+--------------------------------------------------------------------------------
+EASY SETUP (RECOMMENDED):
+--------------------------------------------------------------------------------
+1. Double-click "setup.bat".
+   This will:
+   - Check your Python installation.
+   - Automatically create an isolated virtual environment (.venv).
+   - Install required packages (psutil, requests, python-dotenv).
+   - Prompt you for your Tenant ID, Collector ID, and Collector Key.
+   - Save your configuration securely in .env.
+   - Run a preflight connection check against the backend.
+
+2. Once setup passes, double-click "run_collector.bat".
+   You will see telemetry stream every 5 seconds:
+   [collector] sent f4a29b10… (col_laptop_01) HTTP 200
+
+3. Open your Nexus Observe dashboard to view your machine under the "Fleet" tab!
+
+--------------------------------------------------------------------------------
+MANUAL SETUP (COMMAND LINE / DEVELOPERS):
+--------------------------------------------------------------------------------
+If you prefer running commands in PowerShell or Command Prompt:
+
+1. Open PowerShell in this folder:
+     python -m venv .venv
+     .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+2. Copy the example settings file:
+     copy settings.example.env .env
+
+3. Open .env in Notepad and fill in your TENANT_ID, COLLECTOR_ID, and COLLECTOR_KEY:
+     notepad .env
+
+4. Verify your connection:
+     .\.venv\Scripts\python.exe -m collector.check
+
+5. Start the collector:
+     .\.venv\Scripts\python.exe -m collector.collector
+
+--------------------------------------------------------------------------------
+HOW TO STOP & REMOVE:
+--------------------------------------------------------------------------------
+- To stop the collector:
+  Click the collector console window and press Ctrl+C, or close the window.
+
+- To completely uninstall:
+  Simply delete this entire folder. The collector makes no registry changes
+  and installs no Windows services or persistent background daemons.
+
+--------------------------------------------------------------------------------
+TROUBLESHOOTING:
+--------------------------------------------------------------------------------
+- "python was not found":
+  Download Python 3.10+ from python.org and check "Add python.exe to PATH".
+- "FAIL: Authentication failed (HTTP 401 Unauthorized)":
+  Check that your COLLECTOR_KEY and COLLECTOR_ID match the values assigned in your dashboard.
+- "FAIL: Permission denied (HTTP 403 Forbidden)":
+  The Collector ID does not belong to the specified Tenant ID.
+- "FAIL: Could not reach backend server":
+  Verify your internet connection and check if a proxy or firewall is blocking outbound HTTPS.
+================================================================================

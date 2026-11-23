@@ -90,3 +90,50 @@ def test_watchdog_marks_silent_collector_poor_after_45s():
     assert stale_doc["status"] == "offline"
     assert stale_doc["health_state"] == "poor"
     assert "45s limit" in stale_doc["health_reasons"][0]
+
+
+def test_watchdog_respects_observed_interval_threshold():
+    """
+    TASK B test:
+    Per collector offline threshold = max(WATCHDOG_OFFLINE_SECONDS, 3 * observed_interval_s)
+    when observed_interval_s exists, otherwise WATCHDOG_OFFLINE_SECONDS.
+    A 30 s collector is not marked offline after 40 s, and is marked offline after 100 s.
+    """
+    db = get_db()
+    base_time = datetime(2026, 11, 20, 16, 0, 0, tzinfo=timezone.utc)
+
+    # 1. Set up a 30s collector seen 40s ago
+    last_seen_40s = (base_time - timedelta(seconds=40)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    col_ref = db.collection("tenants/tenant_acme_demo/collectors").document("col_30s_test")
+    col_ref.set({
+        "status": "online",
+        "health_state": "good",
+        "observed_interval_s": 30.0,
+        "last_seen_utc": last_seen_40s,
+        "source_id": "src_30s_test",
+    })
+
+    # Watchdog run at base_time: diff is 40s.
+    # Offline threshold is max(45, 3 * 30) = 90s.
+    # 40s <= 90s, so it must NOT be marked offline.
+    check_and_update_silent_collectors(
+        db=db,
+        now_override=base_time,
+    )
+    doc_after_40s = col_ref.get().to_dict()
+    assert doc_after_40s["status"] == "online"
+    assert doc_after_40s["health_state"] == "good"
+
+    # Watchdog run at base_time + 60s: diff is 40s + 60s = 100s.
+    # 100s > 90s, so it MUST be marked offline and poor.
+    later_time = base_time + timedelta(seconds=60)
+    updated = check_and_update_silent_collectors(
+        db=db,
+        now_override=later_time,
+    )
+    assert updated >= 1
+    doc_after_100s = col_ref.get().to_dict()
+    assert doc_after_100s["status"] == "offline"
+    assert doc_after_100s["health_state"] == "poor"
+    assert "90s limit" in doc_after_100s["health_reasons"][0]
+

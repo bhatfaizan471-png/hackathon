@@ -160,6 +160,8 @@ describe("Login and Tenant Claim Flow Tests", () => {
     expect(JSON.parse(capturedOptions.body)).toEqual({ invite_code: "NXO-ACME-5678" });
     // User token refreshed to load claim
     expect(mockUser.getIdToken).toHaveBeenCalledWith(true);
+    expect(container.querySelector('[data-testid="account-created-popup"]')).not.toBeNull();
+    expect(container.textContent).toContain("Account Created Successfully!");
   });
 
   it("a rejected invite deletes the created user to prevent orphan accounts", async () => {

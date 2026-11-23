@@ -35,8 +35,12 @@ def scan_failed_logins(log_path: str | Path) -> LoginScanResult:
     fair_at: int = sec_cfg.get("auth_failures_fair_at", 5)
     poor_at: int = sec_cfg.get("auth_failures_poor_at", 20)
 
+    p = Path(log_path)
+    if not p.exists():
+        return LoginScanResult(count=0, window_s=window_s, risk_level="none")
+
     count = 0
-    with open(log_path, "r", encoding="utf-8") as f:
+    with open(p, "r", encoding="utf-8") as f:
         for line in f:
             for pattern in _FAILED_LOGIN_PATTERNS:
                 if pattern.search(line):

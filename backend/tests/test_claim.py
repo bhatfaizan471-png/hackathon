@@ -177,3 +177,9 @@ def test_valid_code_success(monkeypatch, setup_mock_firestore):
 
     # Assert custom claim set
     assert claimed_claims.get("user_valid_99") == {"tenant_id": "tenant_beta_corp"}
+
+    # Assert user record stored in database under tenant
+    user_snap = db.collection("tenants/tenant_beta_corp/users").document("user_valid_99").get()
+    snap = next(iter(user_snap), None) if not hasattr(user_snap, "exists") else user_snap
+    assert snap.exists
+    assert snap.to_dict()["tenant_id"] == "tenant_beta_corp"

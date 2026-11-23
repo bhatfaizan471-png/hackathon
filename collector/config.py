@@ -11,19 +11,41 @@ from dotenv import load_dotenv
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 COLLECTOR_DIR = Path(__file__).resolve().parent
 
-load_dotenv(PROJECT_ROOT / ".env")
+# Load .env from cwd, collector directory, or project root
+for env_candidate in [Path.cwd() / ".env", COLLECTOR_DIR / ".env", PROJECT_ROOT / ".env"]:
+    if env_candidate.exists():
+        load_dotenv(env_candidate)
+        break
+else:
+    load_dotenv()
 
 # ── Thresholds ────────────────────────────────────────────────────────────────
 def load_thresholds() -> dict:
-    p = PROJECT_ROOT / "config" / "thresholds.json"
-    with open(p, "r", encoding="utf-8") as f:
-        return json.load(f)
+    candidates = [
+        PROJECT_ROOT / "config" / "thresholds.json",
+        COLLECTOR_DIR / "config" / "thresholds.json",
+        COLLECTOR_DIR.parent / "config" / "thresholds.json",
+        Path.cwd() / "config" / "thresholds.json",
+    ]
+    for p in candidates:
+        if p.exists():
+            with open(p, "r", encoding="utf-8") as f:
+                return json.load(f)
+    raise FileNotFoundError("Could not find thresholds.json in any expected config path")
 
 # ── Allow-list ────────────────────────────────────────────────────────────────
 def load_allow_list() -> dict:
-    p = PROJECT_ROOT / "config" / "allow_list.json"
-    with open(p, "r", encoding="utf-8") as f:
-        return json.load(f)
+    candidates = [
+        PROJECT_ROOT / "config" / "allow_list.json",
+        COLLECTOR_DIR / "config" / "allow_list.json",
+        COLLECTOR_DIR.parent / "config" / "allow_list.json",
+        Path.cwd() / "config" / "allow_list.json",
+    ]
+    for p in candidates:
+        if p.exists():
+            with open(p, "r", encoding="utf-8") as f:
+                return json.load(f)
+    raise FileNotFoundError("Could not find allow_list.json in any expected config path")
 
 # ── Runtime settings ──────────────────────────────────────────────────────────
 SEND_INTERVAL_SECONDS: int = int(os.getenv("SEND_INTERVAL_SECONDS", "5"))

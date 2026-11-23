@@ -1,7 +1,7 @@
 /**
  * Calculates health state based on staleness rules from config/thresholds.json:
- * - Fair after 3 missed intervals (3 * 5s = 15s)
- * - Poor after 60s without heartbeat
+ * - Stale after max(15, 3 * interval) seconds (degraded to fair if not already poor)
+ * - Poor/offline after max(60, 4 * interval) seconds
  */
 export function calculateStaleness(lastSeenUtc, baseState = "excellent", sendIntervalSeconds = 5) {
   if (!lastSeenUtc) {
@@ -17,23 +17,27 @@ export function calculateStaleness(lastSeenUtc, baseState = "excellent", sendInt
   const now = Date.now();
   const diffSeconds = Math.max(0, Math.floor((now - lastSeen) / 1000));
 
-  if (diffSeconds > 60) {
+  const interval = Number(sendIntervalSeconds) || 5;
+  const poorThreshold = Math.max(60, 4 * interval);
+  const staleThreshold = Math.max(15, 3 * interval);
+
+  if (diffSeconds > poorThreshold) {
     return {
       effectiveState: "poor",
       isStale: true,
       secondsAgo: diffSeconds,
-      reason: `No heartbeat for ${diffSeconds}s (>60s limit)`,
+      reason: `No heartbeat for ${diffSeconds}s (>${poorThreshold}s limit)`,
     };
   }
 
-  if (diffSeconds > sendIntervalSeconds * 3) {
-    // 3 missed intervals
+  if (diffSeconds > staleThreshold) {
+    // Stale: stale data never shows as healthy
     const degradedState = (baseState === "poor") ? "poor" : "fair";
     return {
       effectiveState: degradedState,
       isStale: true,
       secondsAgo: diffSeconds,
-      reason: `Heartbeat delayed by ${diffSeconds}s (>15s threshold)`,
+      reason: `Heartbeat delayed by ${diffSeconds}s (>${staleThreshold}s threshold)`,
     };
   }
 

@@ -7,13 +7,13 @@ export default function HealthHistoryView() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-bold text-[#0c4a3e] tracking-tight">Health History Log</h2>
-        <p className="text-xs text-stone-500">Recorded transitions between health states for {activeTenant.name}</p>
+        <h2 className="text-xl font-bold text-[#1c382b] tracking-tight">Health History Log</h2>
+        <p className="text-xs text-[#756449]">Recorded transitions between health states for {activeTenant.name}</p>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-        <table className="min-w-full divide-y divide-stone-200 text-left text-xs">
-          <thead className="bg-[#f4f7f4] text-stone-600 uppercase font-bold tracking-wider">
+      <div className="overflow-hidden rounded-3xl border border-[#e5dec9] bg-[#faf7f2] shadow-xs card-hover">
+        <table className="min-w-full divide-y divide-[#eee8dc] text-left text-xs">
+          <thead className="bg-[#f4efe6] text-[#756449] uppercase font-bold tracking-wider text-[11px]">
             <tr>
               <th className="py-3.5 px-4">Timestamp (UTC)</th>
               <th className="py-3.5 px-4">Source ID</th>
@@ -21,25 +21,25 @@ export default function HealthHistoryView() {
               <th className="py-3.5 px-4">Reason</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100">
+          <tbody className="divide-y divide-[#f0eae0]">
             {healthHistory.length > 0 ? (
               healthHistory.map((evt) => (
-                <tr key={evt.id} className="hover:bg-stone-50/70">
-                  <td className="py-3.5 px-4 font-mono text-stone-500">{evt.time_utc}</td>
-                  <td className="py-3.5 px-4 font-mono text-[#0c4a3e] font-semibold">{evt.source_id}</td>
+                <tr key={evt.id} className="hover:bg-[#f2ece1]/60 transition-colors">
+                  <td className="py-3.5 px-4 font-mono text-[#756449]">{evt.time_utc}</td>
+                  <td className="py-3.5 px-4 font-mono text-[#1c382b] font-semibold">{evt.source_id}</td>
                   <td className="py-3.5 px-4">
-                    <span className="font-semibold text-stone-700">{evt.from_state}</span>
-                    <span className="text-stone-400 mx-2">→</span>
-                    <span className={`font-bold ${evt.to_state === "poor" ? "text-rose-600" : "text-amber-600"}`}>
+                    <span className="font-semibold text-[#544733]">{evt.from_state}</span>
+                    <span className="text-[#b5a281] mx-2 font-bold">→</span>
+                    <span className={`font-bold ${evt.to_state === "poor" ? "text-rose-700" : "text-amber-800"}`}>
                       {evt.to_state}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 text-stone-700 font-medium">{evt.reason}</td>
+                  <td className="py-3.5 px-4 text-[#24221f] font-medium">{evt.reason}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="py-8 text-center text-stone-500 italic">
+                <td colSpan={4} className="py-8 text-center text-[#756449] italic">
                   No health transition events recorded yet. Transitions occur when health state changes or a collector goes Poor after 60s without a heartbeat.
                 </td>
               </tr>

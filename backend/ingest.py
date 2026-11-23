@@ -131,6 +131,28 @@ async def ingest(
         "buffer_depth": hb.get("buffer_depth", 0),
         "source_timezone": filtered_payload.get("source_timezone"),
     }
+
+    # Compute observed_interval_s: seconds between previous last_seen_utc and now, smoothed via EWMA (alpha 0.3, clamped to 3..300)
+    try:
+        col_snap = collector_ref.get()
+        snap = next(iter(col_snap), None) if (hasattr(col_snap, "__iter__") and not hasattr(col_snap, "exists")) else col_snap
+        if snap and snap.exists:
+            existing_data = snap.to_dict() or {}
+            prev_last_seen = existing_data.get("last_seen_utc")
+            if prev_last_seen:
+                prev_dt = datetime.fromisoformat(prev_last_seen.replace("Z", "+00:00"))
+                raw_interval = (now_utc - prev_dt).total_seconds()
+                if raw_interval > 0:
+                    prev_ewma = existing_data.get("observed_interval_s")
+                    if prev_ewma is not None:
+                        smoothed = 0.3 * raw_interval + 0.7 * float(prev_ewma)
+                    else:
+                        smoothed = float(raw_interval)
+                    clamped = max(3.0, min(300.0, smoothed))
+                    collector_update["observed_interval_s"] = round(clamped, 2)
+    except Exception as e:
+        logger.warning(f"Error computing observed_interval_s for {auth_collector}: {e}")
+
     collector_ref.set(collector_update, merge=True)
 
     # 6. Store alerts if present

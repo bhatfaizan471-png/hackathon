@@ -8,8 +8,14 @@ Built for the CICADA 2026 Smart Observability Hackathon.
 
 ## ⚡ Quick Start (One Command)
 
-To run the complete platform locally:
+### 1. Clone and Open
+```powershell
+git clone https://github.com/bhatfaizan471-png/hackathon.git
+cd hackathon
+code .
+```
 
+### 2. Run Complete Platform Locally
 ```powershell
 python scripts/run_local.py
 ```
@@ -19,12 +25,48 @@ This starts:
 2. FastAPI SaaS Ingest Server (`http://127.0.0.1:8000`).
 3. Autonomous simulated collectors (3 hosts: laptop, web server, DB).
 
-To launch the real-time Dashboard:
+### 3. Launch the Real-Time Dashboard
 ```powershell
 cd frontend
 npm run dev
 ```
 Open [http://localhost:5173](http://localhost:5173).
+
+---
+
+## 💻 Running the Local Host Collector
+
+Nexus Observe Collector streams basic machine health (CPU, RAM, disk, packet loss) without collecting or sending any personal information, usernames, IP addresses, hostnames, or raw logs.
+
+### Option A: Standalone ZIP (Easy Setup for Windows)
+1. Download `nexus-collector.zip` from the dashboard or `frontend/public/downloads/nexus-collector.zip`.
+2. Extract the ZIP to any folder.
+3. Double-click `setup.bat`. Follow the prompts to enter your **Tenant ID**, **Collector ID**, and **Collector Key**.
+4. Double-click `run_collector.bat` to begin streaming telemetry.
+
+### Option B: Developer / Git Setup
+From the cloned `hackathon` directory:
+```powershell
+# 1. Create virtual environment and install dependencies
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r collector\requirements.txt
+
+# 2. Configure credentials
+copy settings.example.env .env
+# Edit .env with your TENANT_ID, COLLECTOR_ID, and COLLECTOR_KEY
+
+# 3. Verify connectivity & authentication
+.\.venv\Scripts\python.exe -m collector.check
+
+# 4. Start collector agent
+.\.venv\Scripts\python.exe -m collector.collector
+```
+
+### Build Standalone Collector Bundle
+To generate `nexus-collector.zip` and `nexus-collector.sha256`:
+```powershell
+python scripts/build_collector_bundle.py
+```
 
 ---
 

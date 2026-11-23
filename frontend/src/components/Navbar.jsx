@@ -10,6 +10,7 @@ import {
   LogOut,
   Building,
   User,
+  Download,
 } from "lucide-react";
 
 export default function Navbar({ activeTab, setActiveTab }) {
@@ -26,25 +27,27 @@ export default function Navbar({ activeTab, setActiveTab }) {
     { id: "incidents", label: "Incidents & AIOps", icon: AlertCircle },
     { id: "history", label: "Health History", icon: RefreshCw },
     { id: "egress", label: "Egress Proof", icon: ShieldCheck },
+    { id: "collector", label: "Get Collector", icon: Download },
   ];
 
   return (
-    <header className="border-b border-stone-200 bg-white/95 backdrop-blur sticky top-0 z-50 shadow-sm">
+    <header className="border-b border-[#e5dec9] bg-[#faf7f2]/95 backdrop-blur-md sticky top-0 z-50 shadow-xs">
+      <div className="h-0.5 bg-gradient-to-r from-[#1c382b] via-[#60896a] to-[#b5a281] w-full" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Platform Info */}
-          <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-xl bg-[#0c4a3e] flex items-center justify-center shadow-md shadow-[#0c4a3e]/15">
-              <Activity className="h-5 w-5 text-white" />
+          <div className="flex items-center space-x-3 group cursor-pointer">
+            <div className="h-10 w-10 rounded-2xl bg-[#1c382b] flex items-center justify-center shadow-md shadow-[#1c382b]/15 group-hover:scale-105 group-hover:rotate-1 transition-all duration-300">
+              <Activity className="h-5 w-5 text-[#cbdccf]" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-[#0c4a3e] text-lg tracking-tight">Nexus Observe</span>
-                <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-[#e7f3ec] text-[#0c4a3e] border border-[#cbe6d5]">
+                <span className="font-bold text-[#1c382b] text-lg tracking-tight group-hover:text-[#37543e] transition-colors">Nexus Observe</span>
+                <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-[#e6ede7] text-[#1c382b] border border-[#cbdccf] shadow-xs">
                   AIOps Tier 2
                 </span>
               </div>
-              <p className="text-xs text-stone-500 font-medium">Privacy-First Two-Tier Observability</p>
+              <p className="text-xs text-[#756449] font-medium">Privacy-First Two-Tier Observability</p>
             </div>
           </div>
 
@@ -54,20 +57,20 @@ export default function Navbar({ activeTab, setActiveTab }) {
             <div
               onClick={checkHealth}
               title={`FastAPI Server: ${backendStatus} • Click to recheck`}
-              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer transition shadow-sm ${
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer btn-tactile shadow-xs ${
                 backendStatus === "online"
-                  ? "bg-[#e7f3ec] border-[#cbe6d5] text-[#0c4a3e] hover:bg-[#d8edd0]"
+                  ? "bg-[#e6ede7] border-[#cbdccf] text-[#1c382b] hover:bg-[#d8e5da]"
                   : backendStatus === "checking"
-                  ? "bg-stone-100 border-stone-200 text-stone-600"
-                  : "bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100"
+                  ? "bg-[#f4f1ea] border-[#e5dec9] text-[#756449]"
+                  : "bg-rose-50 border-rose-200 text-rose-800 hover:bg-rose-100"
               }`}
             >
               <span
                 className={`inline-block h-2 w-2 rounded-full ${
                   backendStatus === "online"
-                    ? "bg-emerald-600 animate-pulse"
+                    ? "bg-[#37543e] animate-live-beacon"
                     : backendStatus === "checking"
-                    ? "bg-amber-400"
+                    ? "bg-[#b5a281]"
                     : "bg-rose-500"
                 }`}
               />
@@ -78,8 +81,8 @@ export default function Navbar({ activeTab, setActiveTab }) {
             </div>
 
             {/* Firestore Live Stream Pill */}
-            <div className="hidden sm:flex items-center space-x-1.5 text-xs px-2.5 py-1.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-600">
-              <span className={`inline-block h-2 w-2 rounded-full ${listenerStatus === "live" ? "bg-emerald-600 animate-pulse" : "bg-amber-400"}`} />
+            <div className="hidden sm:flex items-center space-x-1.5 text-xs px-2.5 py-1.5 rounded-xl bg-[#f4f1ea] border border-[#e5dec9] text-[#544733] shadow-xs">
+              <span className={`inline-block h-2 w-2 rounded-full ${listenerStatus === "live" ? "bg-[#37543e] animate-live-beacon" : "bg-[#b5a281]"}`} />
               <span className="font-medium">
                 Firestore: {listenerStatus === "live" ? "Live Stream" : "Connecting"}
               </span>
@@ -87,13 +90,13 @@ export default function Navbar({ activeTab, setActiveTab }) {
 
             {/* Tenant Claim Badge (No manual switch) */}
             {activeTenant && (
-              <div className="flex items-center space-x-2 bg-[#f8faf8] px-3 py-1.5 rounded-xl border border-stone-200 shadow-sm">
-                <Building className="h-3.5 w-3.5 text-[#0c4a3e]" />
+              <div className="flex items-center space-x-2 bg-[#f4f1ea] px-3 py-1.5 rounded-xl border border-[#e5dec9] shadow-xs">
+                <Building className="h-3.5 w-3.5 text-[#1c382b]" />
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold text-[#0c4a3e] leading-tight">
+                  <span className="text-xs font-bold text-[#1c382b] leading-tight">
                     {activeTenant.name}
                   </span>
-                  <span className="text-[10px] text-stone-400 font-mono leading-none">
+                  <span className="text-[10px] text-[#756449] font-mono leading-none">
                     {activeTenant.id}
                   </span>
                 </div>
@@ -103,14 +106,14 @@ export default function Navbar({ activeTab, setActiveTab }) {
             {/* User & Logout Button */}
             {user && (
               <div className="flex items-center space-x-2 pl-1">
-                <div className="hidden lg:flex items-center space-x-1 text-xs text-stone-600 bg-stone-50 px-2.5 py-1.5 rounded-xl border border-stone-200">
-                  <User className="h-3.5 w-3.5 text-stone-400" />
+                <div className="hidden lg:flex items-center space-x-1 text-xs text-[#544733] bg-[#f4f1ea] px-2.5 py-1.5 rounded-xl border border-[#e5dec9] shadow-xs">
+                  <User className="h-3.5 w-3.5 text-[#968262]" />
                   <span className="font-medium">{user.email}</span>
                 </div>
                 <button
                   onClick={logout}
                   title="Sign out of Nexus Observe"
-                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-rose-50 hover:border-rose-200 hover:text-rose-700 text-stone-700 text-xs font-semibold transition shadow-sm"
+                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-[#e5dec9] bg-[#faf7f2] hover:bg-rose-50 hover:border-rose-200 hover:text-rose-800 text-[#544733] text-xs font-semibold btn-tactile shadow-xs cursor-pointer"
                 >
                   <LogOut className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">Logout</span>
@@ -121,7 +124,7 @@ export default function Navbar({ activeTab, setActiveTab }) {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex space-x-1.5 overflow-x-auto py-2.5 scrollbar-none border-t border-stone-100">
+        <div className="flex space-x-1.5 overflow-x-auto py-2.5 scrollbar-none border-t border-[#eee8dc]">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -129,13 +132,13 @@ export default function Navbar({ activeTab, setActiveTab }) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
+                className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 whitespace-nowrap btn-tactile cursor-pointer ${
                   isActive
-                    ? "bg-[#0c4a3e] text-white shadow-sm shadow-[#0c4a3e]/20"
-                    : "text-stone-600 hover:text-[#0c4a3e] hover:bg-[#e7f3ec]/60"
+                    ? "bg-[#1c382b] text-[#faf7f2] shadow-sm shadow-[#1c382b]/20 scale-[1.02]"
+                    : "text-[#544733] hover:text-[#1c382b] hover:bg-[#e6ede7]/70"
                 }`}
               >
-                <Icon className="h-3.5 w-3.5" />
+                <Icon className={`h-3.5 w-3.5 ${isActive ? "text-[#a3c5b1]" : "text-[#968262]"}`} />
                 <span>{tab.label}</span>
               </button>
             );

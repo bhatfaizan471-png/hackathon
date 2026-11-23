@@ -95,4 +95,21 @@ def claim_tenant(payload: ClaimTenantRequest, authorization: str | None = Header
     except Exception as e:
         raise HTTPException(status_code=500, detail="Failed to assign tenant claim") from e
 
+    # 6. Store user account record in database under tenant and global users
+    email = decoded_token.get("email") or ""
+    now_iso = datetime.now(timezone.utc).isoformat()
+    user_record = {
+        "uid": uid,
+        "email": email,
+        "tenant_id": tenant_id,
+        "role": "Tenant Member",
+        "created_at_utc": now_iso,
+    }
+    try:
+        db.collection(f"tenants/{tenant_id}/users").document(uid).set(user_record)
+        db.collection("users").document(uid).set(user_record)
+    except Exception as e:
+        # Non-fatal if firestore user write fails
+        print(f"[Warning] Failed to write user document to database: {e}")
+
     return {"tenant_id": tenant_id}
